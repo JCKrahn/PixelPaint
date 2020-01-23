@@ -1,4 +1,5 @@
 .idea
+.gitattributes
 build
 
 gui_classes.pyc
