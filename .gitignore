@@ -1,10 +1,5 @@
 .idea
 build
-build_resources
-exe_setup.py
-Pipfile
-Pipfile.lock
-PixelPaint_installer_setup.iss
 
 gui_classes.pyc
 ini_manager.pyc
@@ -12,3 +7,6 @@ language.pyc
 paint_process.pyc
 paint_window.pyc
 PixelPaint.pyc
+
+Pipfile
+Pipfile.lock
