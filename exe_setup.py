@@ -1,17 +1,13 @@
 """
 EXE Setup
-
-# -> : pipenv run python exe_setup.py build
-# rename build/exe.win-amd64-2.7 to exe
-# remove build/exe/tcl, build/exe/tk
-# create folder build/exe/include
-# move folders from build/exe/* to build/exe/include
-# create folder build/installer
-# open PixelPaint_installer_setup with InnoSetupCompiler
-# run PixelPaint_installer_setup
 """
 
+import sys
+import os
+import pathlib2
 from cx_Freeze import setup, Executable
+
+sys.argv.append("build")
 
 setup(
     name="PixelPaint",
@@ -43,3 +39,18 @@ setup(
                             }},
     executables=[Executable(script="PixelPaint.py", base = "win32GUI", icon="build_resources\icon.ico")]
 )
+
+
+def delete_dir(pth) :
+    for sub in pth.iterdir() :
+        if sub.is_dir() :
+            delete_dir(sub)
+        else :
+            sub.unlink()
+    pth.rmdir()
+
+
+os.rename("build\\exe.win-amd64-2.7", "build\\exe")
+delete_dir(pathlib2.Path("build\\exe\\tcl"))
+delete_dir(pathlib2.Path("build\\exe\\tk"))
+pathlib2.Path("build\\installer").mkdir(exist_ok=True)

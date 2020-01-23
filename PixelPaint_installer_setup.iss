@@ -36,7 +36,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "C:\PixelPaint\build\exe\PixelPaint.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\PixelPaint\build\exe\python27.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\PixelPaint\build\exe\include\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\PixelPaint\build\exe\data"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\PixelPaint\build\exe\imageformats"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\PixelPaint\build\exe\lib"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\PixelPaint\build\exe\platforms"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

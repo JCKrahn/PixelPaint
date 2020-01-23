@@ -1,5 +1,4 @@
 .idea
-.gitattributes
 build
 
 gui_classes.pyc
@@ -8,6 +7,8 @@ language.pyc
 paint_process.pyc
 paint_window.pyc
 PixelPaint.pyc
+
+.gitattributes
 
 Pipfile
 Pipfile.lock
