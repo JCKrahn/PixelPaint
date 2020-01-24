@@ -1,8 +1,12 @@
-# PixelPaint
+<img src='img/logo.png'>
+
+
 Pixel level drawing program (for Windows) - made with Python.<br/>
 [Download releases](https://github.com/JCKrahn/PixelPaint/releases)
 
-<img src='prev_img.PNG' width='600'>
+
+## Preview:
+<img src='img/prev_img.PNG' width='600'>
 
 
 ## Build:
@@ -17,7 +21,6 @@ Pixel level drawing program (for Windows) - made with Python.<br/>
   - cx-Freeze(= 5.1.1)
   - python-qt5(= 0.1.10)
   
-
 ### how to build:
 - run exe_setup.py 
 - modify file-paths in PixelPaint_installer_setup.iss
