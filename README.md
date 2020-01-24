@@ -1,12 +1,11 @@
 <img src='img/logo.png' width='600'>
+
 Pixel level drawing program (for Windows) - made with Python.<br/>
 [Download releases](https://github.com/JCKrahn/PixelPaint/releases)
 
 
-
 ## Preview:
 <img src='img/prev_img.PNG' width='600'>
-
 
 
 ## Build:
