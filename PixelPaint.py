@@ -351,13 +351,13 @@ class GUI(QMainWindow):
             self.ini = general_settings_menu.ini
             message = gui_classes.Message(self, (212, 86), self.lang["settings title"], self.lang["need to restart"])
             message.show()
-            ini_manager.write("data/PixelPaint.ini", self.ini)
+            ini_manager.write(self.AppData+"/PixelPaint.ini", self.ini)
 
     def open_paint_window_settings_menu(self):
         paint_window_settings_menu = gui_classes.PaintWindowSettings(self, self.ini, self.lang)
         if paint_window_settings_menu.exec_() == 1:
             self.ini = paint_window_settings_menu.ini
-            ini_manager.write("data/PixelPaint.ini", self.ini)
+            ini_manager.write(self.AppData+"/PixelPaint.ini", self.ini)
 
     def open_help_page(self):
         if self.ini["lang"] == "eng":

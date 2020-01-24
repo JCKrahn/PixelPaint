@@ -148,8 +148,8 @@ class PaintWindowSettings(QDialog):
         if self.fill_tool_tolerance_group.isChecked(): self.ini["enable_fill_alg_tolerance"] = "true"
         else: self.ini["enable_fill_alg_tolerance"] = "false"
         self.ini["fill_alg_tolerance"] = self.set_fill_tool_tolerance.text()
-        if self.image_maxsize_button.isChecked(): self.ini["image_loader_maxsize"] = "true"
-        else: self.ini["image_loader_maxsize"] = "false"
+        if self.image_maxsize_button.isChecked(): self.ini["image_maxsize"] = "true"
+        else: self.ini["image_maxsize"] = "false"
 
         self.done(1)
 
