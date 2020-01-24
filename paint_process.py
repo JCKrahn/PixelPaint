@@ -116,6 +116,7 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
     selected_color = None
     selected_tool = None
     draw_width = 1
+    fill_alg_only_connected_pixels = "false"
     fill_alg_visual = "false"
     enable_fill_alg_tolerance = "false"
     fill_alg_tolerance = 10
@@ -203,6 +204,9 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
 
                 elif paint_input[1] == "redo":
                     redo()
+
+            elif paint_input[0] == "fill_alg_only_connected_pixels":
+                fill_alg_only_connected_pixels = paint_input[1]
 
             elif paint_input[0] == "fill_alg_visual":
                 fill_alg_visual = paint_input[1]
@@ -1335,280 +1339,526 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
         # fill
         if selected_tool == "fill" and image.pressed():
             pygame.event.set_allowed(pygame.QUIT)
-
             pygame.mouse.set_cursor(*pygame.cursors.arrow)
 
-            if enable_fill_alg_tolerance == "true":  # tolerance enabled:
-                undo_list.append(image.get_pixel_colors())
+            stop = False  # only for fill_alg_only_connected_pixels == "false"
 
-                mouse_pos = pygame.mouse.get_pos()
+            if fill_alg_only_connected_pixels == "false":  # fill all pixels with matching color
 
-                pixels = [(int((mouse_pos[0] - image.xywh[0]) / image.scale), int((mouse_pos[1] - image.xywh[1])
-                                                                                  / image.scale))]
-                drawn_pixels = []
-                max_deviation = int(256 * fill_alg_tolerance / 100)
+                if enable_fill_alg_tolerance == "true":  # tolerance enabled:
+                    undo_list.append(image.get_pixel_colors())
 
-                if image.pixel_exists(*pixels[0]):  # starting pixel exists:
-                    color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
-                        int((mouse_pos[0] -
-                             image.xywh[0]) / image.scale)].rgba
+                    mouse_pos = pygame.mouse.get_pos()
 
-                    if color_to_match != selected_color + (255,):
+                    max_deviation = int(256 * fill_alg_tolerance / 100)
 
-                        if fill_alg_visual == "true":  # visualize algorithm:
-                            while len(pixels) > 0:
-                                events = pygame.event.get()
-                                current_pixel = pixels.pop()
-                                drawn_pixels.append(current_pixel)
-                                image.draw_pixel(current_pixel[0], current_pixel[1], selected_color + (255,))
+                    if image.pixel_exists(int((mouse_pos[0] - image.xywh[0]) / image.scale),
+                            int((mouse_pos[1] - image.xywh[1]) / image.scale)):  # starting pixel exists:
 
-                                for pixel in image.get_neighbor_pixels(*current_pixel):
-                                    # pixel not visited and color matches (with max_deviation)
-                                    if pixel not in drawn_pixels and pixel not in pixels \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[0] - \
-                                            color_to_match[0] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[1] - \
-                                            color_to_match[1] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[2] - \
-                                            color_to_match[2] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[3] - \
-                                            color_to_match[3] <= max_deviation:
-                                        pixels.append(pixel)
+                        color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
+                                int((mouse_pos[0] - image.xywh[0]) / image.scale)].rgba
 
-                                pygame.display.update()
+                        if color_to_match != selected_color + (255,):
 
-                                for e in events:
-                                    if e.type == pygame.QUIT:
-                                        pixels = []
-                                        pygame.event.clear()
-                                        break
+                            if fill_alg_visual == "true":  # visualize algorithm:
+                                for y in range(image.real_h_in_pixels):
+                                    events = pygame.event.get()
 
-                        else:  # don't visualize algorithm:
-                            while len(pixels) > 0:
-                                events = pygame.event.get()
-                                current_pixel = pixels.pop()
-                                drawn_pixels.append(current_pixel)
-                                image.draw_pixel(current_pixel[0], current_pixel[1], selected_color + (255,))
+                                    for x in range(image.real_w_in_pixels):
+                                        # color matches (with max_deviation)
+                                        if -1 * max_deviation <= image.pixels[y][x].rgba[0] - \
+                                                color_to_match[0] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[1] - \
+                                                color_to_match[1] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[2] - \
+                                                color_to_match[2] <= max_deviation \
+                                                and -1 * max_deviation <=image.pixels[y][x].rgba[3] - \
+                                                color_to_match[3] <= max_deviation:
+                                            image.draw_pixel(x, y, selected_color + (255,))
 
-                                for pixel in image.get_neighbor_pixels(*current_pixel):
-                                    # pixel not visited and color matches (with max_deviation)
-                                    if pixel not in drawn_pixels and pixel not in pixels \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[0] - \
-                                            color_to_match[0] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[1] - \
-                                            color_to_match[1] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[2] - \
-                                            color_to_match[2] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[3] - \
-                                            color_to_match[3] <= max_deviation:
-                                        pixels.append(pixel)
+                                            pygame.display.update()
 
-                                for e in events:
-                                    if e.type == pygame.QUIT:
-                                        pixels = []
-                                        pygame.event.clear()
-                                        break
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            stop = True
+                                            pygame.event.clear()
+                                            break
+                                    if stop: break
 
-                            pygame.display.update()
+                            else:  # don't visualize algorithm:
+                                for y in range(image.real_h_in_pixels):
+                                    events = pygame.event.get()
 
-            else:  # tolerance disabled:
+                                    for x in range(image.real_w_in_pixels):
+                                        # color matches (with max_deviation)
+                                        if -1 * max_deviation <= image.pixels[y][x].rgba[0] - \
+                                                color_to_match[0] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[1] - \
+                                                color_to_match[1] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[2] - \
+                                                color_to_match[2] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[3] - \
+                                                color_to_match[3] <= max_deviation:
+                                            image.draw_pixel(x, y, selected_color + (255,))
 
-                undo_list.append(image.get_pixel_colors())
-
-                mouse_pos = pygame.mouse.get_pos()
-
-                pixels = [(int((mouse_pos[0] - image.xywh[0]) / image.scale),
-                           int((mouse_pos[1] - image.xywh[1]) / image.scale))]
-                drawn_pixels = []
-
-                if image.pixel_exists(*pixels[0]):  # starting pixel exists:
-                    color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
-                        int((mouse_pos[0] -
-                             image.xywh[0]) / image.scale)].rgba
-
-                    if color_to_match != selected_color + (255,):
-
-                        if fill_alg_visual == "true":  # visualize algorithm:
-                            while len(pixels) > 0:
-                                events = pygame.event.get()
-                                current_pixel = pixels.pop()
-                                drawn_pixels.append(current_pixel)
-                                image.draw_pixel(current_pixel[0], current_pixel[1], selected_color + (255,))
-
-                                for pixel in image.get_neighbor_pixels(*current_pixel):
-                                    if pixel not in drawn_pixels and pixel not in pixels \
-                                            and image.pixels[pixel[1]][pixel[0]].rgba == color_to_match:
-                                        pixels.append(pixel)
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            stop = True
+                                            pygame.event.clear()
+                                            break
+                                    if stop: break
 
                                 pygame.display.update()
 
-                                for e in events:
-                                    if e.type == pygame.QUIT:
-                                        pixels = []
-                                        pygame.event.clear()
-                                        break
+                else:  # tolerance disabled:
 
-                        else:  # don't visualize algorithm:
-                            while len(pixels) > 0:
-                                events = pygame.event.get()
-                                current_pixel = pixels.pop()
-                                drawn_pixels.append(current_pixel)
-                                image.draw_pixel(current_pixel[0], current_pixel[1], selected_color + (255,))
+                    undo_list.append(image.get_pixel_colors())
 
-                                for pixel in image.get_neighbor_pixels(*current_pixel):
-                                    if pixel not in drawn_pixels and pixel not in pixels \
-                                            and image.pixels[pixel[1]][pixel[0]].rgba == color_to_match:
-                                        pixels.append(pixel)
+                    mouse_pos = pygame.mouse.get_pos()
 
-                                for e in events:
-                                    if e.type == pygame.QUIT:
-                                        pixels = []
-                                        pygame.event.clear()
-                                        break
+                    if image.pixel_exists(int((mouse_pos[0] - image.xywh[0]) / image.scale),
+                                          int((mouse_pos[1] - image.xywh[1]) / image.scale)):  # starting pixel exists:
 
-                            pygame.display.update()
+                        color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
+                            int((mouse_pos[0] - image.xywh[0]) / image.scale)].rgba
 
-            pygame.event.set_allowed([pygame.QUIT, pygame.VIDEORESIZE, pygame.KEYDOWN])
-            continue
+                        if color_to_match != selected_color + (255,):
+
+                            if fill_alg_visual == "true":  # visualize algorithm:
+                                for y in range(image.real_h_in_pixels):
+                                    events = pygame.event.get()
+
+                                    for x in range(image.real_w_in_pixels):
+                                        # color matches
+                                        if image.pixels[y][x].rgba == color_to_match:
+                                            image.draw_pixel(x, y, selected_color + (255,))
+
+                                            pygame.display.update()
+
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            stop = True
+                                            pygame.event.clear()
+                                            break
+                                    if stop: break
+
+                            else:  # don't visualize algorithm:
+                                for y in range(image.real_h_in_pixels):
+                                    events = pygame.event.get()
+
+                                    for x in range(image.real_w_in_pixels):
+                                        # color matches
+                                        if image.pixels[y][x].rgba == color_to_match:
+                                            image.draw_pixel(x, y, selected_color + (255,))
+
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            stop = True
+                                            pygame.event.clear()
+                                            break
+                                    if stop: break
+
+                                pygame.display.update()
+
+                pygame.event.set_allowed([pygame.QUIT, pygame.VIDEORESIZE, pygame.KEYDOWN])
+                continue
+
+            else:  # fill only connected pixels
+
+                if enable_fill_alg_tolerance == "true":  # tolerance enabled:
+                    undo_list.append(image.get_pixel_colors())
+
+                    mouse_pos = pygame.mouse.get_pos()
+
+                    pixels = [(int((mouse_pos[0] - image.xywh[0]) / image.scale), int((mouse_pos[1] - image.xywh[1])
+                                                                                      / image.scale))]
+                    drawn_pixels = []
+                    max_deviation = int(256 * fill_alg_tolerance / 100)
+
+                    if image.pixel_exists(*pixels[0]):  # starting pixel exists:
+                        color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
+                            int((mouse_pos[0] -
+                                 image.xywh[0]) / image.scale)].rgba
+
+                        if color_to_match != selected_color + (255,):
+
+                            if fill_alg_visual == "true":  # visualize algorithm:
+                                while len(pixels) > 0:
+                                    events = pygame.event.get()
+                                    current_pixel = pixels.pop()
+                                    drawn_pixels.append(current_pixel)
+                                    image.draw_pixel(current_pixel[0], current_pixel[1], selected_color + (255,))
+
+                                    for pixel in image.get_neighbor_pixels(*current_pixel):
+                                        # pixel not visited and color matches (with max_deviation)
+                                        if pixel not in drawn_pixels and pixel not in pixels \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[0] - \
+                                                color_to_match[0] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[1] - \
+                                                color_to_match[1] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[2] - \
+                                                color_to_match[2] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[3] - \
+                                                color_to_match[3] <= max_deviation:
+                                            pixels.append(pixel)
+
+                                    pygame.display.update()
+
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            pixels = []
+                                            pygame.event.clear()
+                                            break
+
+                            else:  # don't visualize algorithm:
+                                while len(pixels) > 0:
+                                    events = pygame.event.get()
+                                    current_pixel = pixels.pop()
+                                    drawn_pixels.append(current_pixel)
+                                    image.draw_pixel(current_pixel[0], current_pixel[1], selected_color + (255,))
+
+                                    for pixel in image.get_neighbor_pixels(*current_pixel):
+                                        # pixel not visited and color matches (with max_deviation)
+                                        if pixel not in drawn_pixels and pixel not in pixels \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[0] - \
+                                                color_to_match[0] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[1] - \
+                                                color_to_match[1] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[2] - \
+                                                color_to_match[2] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[3] - \
+                                                color_to_match[3] <= max_deviation:
+                                            pixels.append(pixel)
+
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            pixels = []
+                                            pygame.event.clear()
+                                            break
+
+                                pygame.display.update()
+
+                else:  # tolerance disabled:
+
+                    undo_list.append(image.get_pixel_colors())
+
+                    mouse_pos = pygame.mouse.get_pos()
+
+                    pixels = [(int((mouse_pos[0] - image.xywh[0]) / image.scale),
+                               int((mouse_pos[1] - image.xywh[1]) / image.scale))]
+                    drawn_pixels = []
+
+                    if image.pixel_exists(*pixels[0]):  # starting pixel exists:
+                        color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
+                            int((mouse_pos[0] -
+                                 image.xywh[0]) / image.scale)].rgba
+
+                        if color_to_match != selected_color + (255,):
+
+                            if fill_alg_visual == "true":  # visualize algorithm:
+                                while len(pixels) > 0:
+                                    events = pygame.event.get()
+                                    current_pixel = pixels.pop()
+                                    drawn_pixels.append(current_pixel)
+                                    image.draw_pixel(current_pixel[0], current_pixel[1], selected_color + (255,))
+
+                                    for pixel in image.get_neighbor_pixels(*current_pixel):
+                                        if pixel not in drawn_pixels and pixel not in pixels \
+                                                and image.pixels[pixel[1]][pixel[0]].rgba == color_to_match:
+                                            pixels.append(pixel)
+
+                                    pygame.display.update()
+
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            pixels = []
+                                            pygame.event.clear()
+                                            break
+
+                            else:  # don't visualize algorithm:
+                                while len(pixels) > 0:
+                                    events = pygame.event.get()
+                                    current_pixel = pixels.pop()
+                                    drawn_pixels.append(current_pixel)
+                                    image.draw_pixel(current_pixel[0], current_pixel[1], selected_color + (255,))
+
+                                    for pixel in image.get_neighbor_pixels(*current_pixel):
+                                        if pixel not in drawn_pixels and pixel not in pixels \
+                                                and image.pixels[pixel[1]][pixel[0]].rgba == color_to_match:
+                                            pixels.append(pixel)
+
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            pixels = []
+                                            pygame.event.clear()
+                                            break
+
+                                pygame.display.update()
+
+                pygame.event.set_allowed([pygame.QUIT, pygame.VIDEORESIZE, pygame.KEYDOWN])
+                continue
 
         # fill with transparency
         if selected_tool == "fill_transparency" and image.pressed():
             pygame.event.set_allowed(pygame.QUIT)
-
             pygame.mouse.set_cursor(*pygame.cursors.arrow)
 
-            if enable_fill_alg_tolerance == "true":  # tolerance enabled:
-                undo_list.append(image.get_pixel_colors())
+            stop = False  # only for fill_alg_only_connected_pixels == "false"
 
-                mouse_pos = pygame.mouse.get_pos()
+            if fill_alg_only_connected_pixels == "false":  # fill all pixels with matching color
 
-                pixels = [(int((mouse_pos[0] - image.xywh[0]) / image.scale), int((mouse_pos[1] - image.xywh[1])
-                                                                                  / image.scale))]
-                drawn_pixels = []
-                max_deviation = int(256 * fill_alg_tolerance / 100)
+                if enable_fill_alg_tolerance == "true":  # tolerance enabled:
+                    undo_list.append(image.get_pixel_colors())
 
-                if image.pixel_exists(*pixels[0]):  # starting pixel exists:
-                    color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
-                        int((mouse_pos[0] -
-                             image.xywh[0]) / image.scale)].rgba
+                    mouse_pos = pygame.mouse.get_pos()
 
-                    if color_to_match != selected_color + (0,):
+                    max_deviation = int(256 * fill_alg_tolerance / 100)
 
-                        if fill_alg_visual == "true":  # visualize algorithm:
-                            while len(pixels) > 0:
-                                events = pygame.event.get()
-                                current_pixel = pixels.pop()
-                                drawn_pixels.append(current_pixel)
-                                image.draw_pixel(current_pixel[0], current_pixel[1], (255, 255, 255, 0))
+                    if image.pixel_exists(int((mouse_pos[0] - image.xywh[0]) / image.scale),
+                                          int((mouse_pos[1] - image.xywh[1]) / image.scale)):  # starting pixel exists:
 
-                                for pixel in image.get_neighbor_pixels(*current_pixel):
-                                    # pixel not visited and color matches (with max_deviation)
-                                    if pixel not in drawn_pixels and pixel not in pixels \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[0] - \
-                                            color_to_match[0] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[1] - \
-                                            color_to_match[1] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[2] - \
-                                            color_to_match[2] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[3] - \
-                                            color_to_match[3] <= max_deviation:
-                                        pixels.append(pixel)
+                        color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
+                            int((mouse_pos[0] - image.xywh[0]) / image.scale)].rgba
 
-                                pygame.display.update()
+                        if color_to_match != (255, 255, 255, 0):
 
-                                for e in events:
-                                    if e.type == pygame.QUIT:
-                                        pixels = []
-                                        pygame.event.clear()
-                                        break
+                            if fill_alg_visual == "true":  # visualize algorithm:
+                                for y in range(image.real_h_in_pixels):
+                                    events = pygame.event.get()
 
-                        else:  # don't visualize algorithm:
-                            while len(pixels) > 0:
-                                events = pygame.event.get()
-                                current_pixel = pixels.pop()
-                                drawn_pixels.append(current_pixel)
-                                image.draw_pixel(current_pixel[0], current_pixel[1], (255, 255, 255, 0))
+                                    for x in range(image.real_w_in_pixels):
+                                        # color matches (with max_deviation)
+                                        if -1 * max_deviation <= image.pixels[y][x].rgba[0] - \
+                                                color_to_match[0] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[1] - \
+                                                color_to_match[1] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[2] - \
+                                                color_to_match[2] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[3] - \
+                                                color_to_match[3] <= max_deviation:
+                                            image.draw_pixel(x, y, (255, 255, 255, 0))
 
-                                for pixel in image.get_neighbor_pixels(*current_pixel):
-                                    # pixel not visited and color matches (with max_deviation)
-                                    if pixel not in drawn_pixels and pixel not in pixels \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[0] - \
-                                            color_to_match[0] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[1] - \
-                                            color_to_match[1] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[2] - \
-                                            color_to_match[2] <= max_deviation \
-                                            and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[3] - \
-                                            color_to_match[3] <= max_deviation:
-                                        pixels.append(pixel)
+                                            pygame.display.update()
 
-                                for e in events:
-                                    if e.type == pygame.QUIT:
-                                        pixels = []
-                                        pygame.event.clear()
-                                        break
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            stop = True
+                                            pygame.event.clear()
+                                            break
+                                    if stop: break
 
-                            pygame.display.update()
+                            else:  # don't visualize algorithm:
+                                for y in range(image.real_h_in_pixels):
+                                    events = pygame.event.get()
 
-            else:  # tolerance disabled:
+                                    for x in range(image.real_w_in_pixels):
+                                        # color matches (with max_deviation)
+                                        if -1 * max_deviation <= image.pixels[y][x].rgba[0] - \
+                                                color_to_match[0] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[1] - \
+                                                color_to_match[1] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[2] - \
+                                                color_to_match[2] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[3] - \
+                                                color_to_match[3] <= max_deviation:
+                                            image.draw_pixel(x, y, (255, 255, 255, 0))
 
-                undo_list.append(image.get_pixel_colors())
-
-                mouse_pos = pygame.mouse.get_pos()
-
-                pixels = [(int((mouse_pos[0] - image.xywh[0]) / image.scale),
-                           int((mouse_pos[1] - image.xywh[1]) / image.scale))]
-                drawn_pixels = []
-
-                if image.pixel_exists(*pixels[0]):  # starting pixel exists:
-                    color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
-                        int((mouse_pos[0] -
-                             image.xywh[0]) / image.scale)].rgba
-
-                    if color_to_match != selected_color + (0,):
-
-                        if fill_alg_visual == "true":  # visualize algorithm:
-                            while len(pixels) > 0:
-                                events = pygame.event.get()
-                                current_pixel = pixels.pop()
-                                drawn_pixels.append(current_pixel)
-                                image.draw_pixel(current_pixel[0], current_pixel[1], (255, 255, 255, 0))
-
-                                for pixel in image.get_neighbor_pixels(*current_pixel):
-                                    if pixel not in drawn_pixels and pixel not in pixels \
-                                            and image.pixels[pixel[1]][pixel[0]].rgba == color_to_match:
-                                        pixels.append(pixel)
-
-                                for e in events:
-                                    if e.type == pygame.QUIT:
-                                        pixels = []
-                                        pygame.event.clear()
-                                        break
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            stop = True
+                                            pygame.event.clear()
+                                            break
+                                    if stop: break
 
                                 pygame.display.update()
 
-                        else:  # don't visualize algorithm:
-                            while len(pixels) > 0:
-                                events = pygame.event.get()
-                                current_pixel = pixels.pop()
-                                drawn_pixels.append(current_pixel)
-                                image.draw_pixel(current_pixel[0], current_pixel[1], (255, 255, 255, 0))
+                else:  # tolerance disabled:
 
-                                for pixel in image.get_neighbor_pixels(*current_pixel):
-                                    if pixel not in drawn_pixels and pixel not in pixels \
-                                            and image.pixels[pixel[1]][pixel[0]].rgba == color_to_match:
-                                        pixels.append(pixel)
+                    undo_list.append(image.get_pixel_colors())
 
-                                for e in events:
-                                    if e.type == pygame.QUIT:
-                                        pixels = []
-                                        pygame.event.clear()
-                                        break
+                    mouse_pos = pygame.mouse.get_pos()
 
-                            pygame.display.update()
+                    if image.pixel_exists(int((mouse_pos[0] - image.xywh[0]) / image.scale),
+                                          int((mouse_pos[1] - image.xywh[1]) / image.scale)):  # starting pixel exists:
 
-            pygame.event.set_allowed([pygame.QUIT, pygame.VIDEORESIZE, pygame.KEYDOWN])
-            continue
+                        color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
+                            int((mouse_pos[0] - image.xywh[0]) / image.scale)].rgba
+
+                        if color_to_match != (255, 255, 255, 0):
+
+                            if fill_alg_visual == "true":  # visualize algorithm:
+                                for y in range(image.real_h_in_pixels):
+                                    events = pygame.event.get()
+
+                                    for x in range(image.real_w_in_pixels):
+                                        # color matches
+                                        if image.pixels[y][x].rgba == color_to_match:
+                                            image.draw_pixel(x, y, (255, 255, 255, 0))
+
+                                            pygame.display.update()
+
+                                        for e in events:
+                                            if e.type == pygame.QUIT:
+                                                stop = True
+                                                pygame.event.clear()
+                                                break
+                                        if stop: break
+
+                            else:  # don't visualize algorithm:
+                                for y in range(image.real_h_in_pixels):
+                                    events = pygame.event.get()
+
+                                    for x in range(image.real_w_in_pixels):
+                                        # color matches
+                                        if image.pixels[y][x].rgba == color_to_match:
+                                            image.draw_pixel(x, y, (255, 255, 255, 0))
+
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            stop = True
+                                            pygame.event.clear()
+                                            break
+                                    if stop: break
+
+                                pygame.display.update()
+
+                pygame.event.set_allowed([pygame.QUIT, pygame.VIDEORESIZE, pygame.KEYDOWN])
+                continue
+
+            else:  # fill only connected pixels
+
+                if enable_fill_alg_tolerance == "true":  # tolerance enabled:
+                    undo_list.append(image.get_pixel_colors())
+
+                    mouse_pos = pygame.mouse.get_pos()
+
+                    pixels = [(int((mouse_pos[0] - image.xywh[0]) / image.scale), int((mouse_pos[1] - image.xywh[1])
+                                                                                      / image.scale))]
+                    drawn_pixels = []
+                    max_deviation = int(256 * fill_alg_tolerance / 100)
+
+                    if image.pixel_exists(*pixels[0]):  # starting pixel exists:
+                        color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
+                            int((mouse_pos[0] -
+                                 image.xywh[0]) / image.scale)].rgba
+
+                        if color_to_match != (255, 255, 255, 0):
+
+                            if fill_alg_visual == "true":  # visualize algorithm:
+                                while len(pixels) > 0:
+                                    events = pygame.event.get()
+                                    current_pixel = pixels.pop()
+                                    drawn_pixels.append(current_pixel)
+                                    image.draw_pixel(current_pixel[0], current_pixel[1], (255, 255, 255, 0))
+
+                                    for pixel in image.get_neighbor_pixels(*current_pixel):
+                                        # pixel not visited and color matches (with max_deviation)
+                                        if pixel not in drawn_pixels and pixel not in pixels \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[0] - \
+                                                color_to_match[0] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[1] - \
+                                                color_to_match[1] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[2] - \
+                                                color_to_match[2] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[3] - \
+                                                color_to_match[3] <= max_deviation:
+                                            pixels.append(pixel)
+
+                                    pygame.display.update()
+
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            pixels = []
+                                            pygame.event.clear()
+                                            break
+
+                            else:  # don't visualize algorithm:
+                                while len(pixels) > 0:
+                                    events = pygame.event.get()
+                                    current_pixel = pixels.pop()
+                                    drawn_pixels.append(current_pixel)
+                                    image.draw_pixel(current_pixel[0], current_pixel[1], (255, 255, 255, 0))
+
+                                    for pixel in image.get_neighbor_pixels(*current_pixel):
+                                        # pixel not visited and color matches (with max_deviation)
+                                        if pixel not in drawn_pixels and pixel not in pixels \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[0] - \
+                                                color_to_match[0] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[1] - \
+                                                color_to_match[1] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[2] - \
+                                                color_to_match[2] <= max_deviation \
+                                                and -1 * max_deviation <= image.pixels[pixel[1]][pixel[0]].rgba[3] - \
+                                                color_to_match[3] <= max_deviation:
+                                            pixels.append(pixel)
+
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            pixels = []
+                                            pygame.event.clear()
+                                            break
+
+                                pygame.display.update()
+
+                else:  # tolerance disabled:
+
+                    undo_list.append(image.get_pixel_colors())
+
+                    mouse_pos = pygame.mouse.get_pos()
+
+                    pixels = [(int((mouse_pos[0] - image.xywh[0]) / image.scale),
+                               int((mouse_pos[1] - image.xywh[1]) / image.scale))]
+                    drawn_pixels = []
+
+                    if image.pixel_exists(*pixels[0]):  # starting pixel exists:
+                        color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
+                            int((mouse_pos[0] -
+                                 image.xywh[0]) / image.scale)].rgba
+
+                        if color_to_match != (255, 255, 255, 0):
+
+                            if fill_alg_visual == "true":  # visualize algorithm:
+                                while len(pixels) > 0:
+                                    events = pygame.event.get()
+                                    current_pixel = pixels.pop()
+                                    drawn_pixels.append(current_pixel)
+                                    image.draw_pixel(current_pixel[0], current_pixel[1], (255, 255, 255, 0))
+
+                                    for pixel in image.get_neighbor_pixels(*current_pixel):
+                                        if pixel not in drawn_pixels and pixel not in pixels \
+                                                and image.pixels[pixel[1]][pixel[0]].rgba == color_to_match:
+                                            pixels.append(pixel)
+
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            pixels = []
+                                            pygame.event.clear()
+                                            break
+
+                                    pygame.display.update()
+
+                            else:  # don't visualize algorithm:
+                                while len(pixels) > 0:
+                                    events = pygame.event.get()
+                                    current_pixel = pixels.pop()
+                                    drawn_pixels.append(current_pixel)
+                                    image.draw_pixel(current_pixel[0], current_pixel[1], (255, 255, 255, 0))
+
+                                    for pixel in image.get_neighbor_pixels(*current_pixel):
+                                        if pixel not in drawn_pixels and pixel not in pixels \
+                                                and image.pixels[pixel[1]][pixel[0]].rgba == color_to_match:
+                                            pixels.append(pixel)
+
+                                    for e in events:
+                                        if e.type == pygame.QUIT:
+                                            pixels = []
+                                            pygame.event.clear()
+                                            break
+
+                                pygame.display.update()
+
+                pygame.event.set_allowed([pygame.QUIT, pygame.VIDEORESIZE, pygame.KEYDOWN])
+                continue
 
         # zoom
         if image.hover() and pygame.key.get_mods() & pygame.KMOD_CTRL:

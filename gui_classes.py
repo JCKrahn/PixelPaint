@@ -60,7 +60,7 @@ class PaintWindowSettings(QDialog):
     def __init__(self, parent, ini, lang):
         super(PaintWindowSettings, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.setWindowTitle(lang["paintwindow settings"])
-        self.setFixedSize(230, 220)
+        self.setFixedSize(230, 230)
 
         self.ini = ini
         self.lang = lang
@@ -74,14 +74,26 @@ class PaintWindowSettings(QDialog):
         fill_tool_settings_group.setTitle(lang["fill tool settings"])
         fill_tool_settings_layout = QVBoxLayout()
 
+        fill_alg_only_connected_pixels_layout = QHBoxLayout()
+        fill_alg_only_connected_pixels_txt = QLabel()
+        fill_alg_only_connected_pixels_txt.setText(lang["fill only connected pixels"])
+        fill_alg_only_connected_pixels_layout.addWidget(fill_alg_only_connected_pixels_txt)
+        self.fill_alg_only_connected_pixels_button = QRadioButton()
+        self.fill_alg_only_connected_pixels_button.setAutoExclusive(False)
+        if ini["fill_alg_only_connected_pixels"] == "true": self.fill_alg_only_connected_pixels_button.setChecked(True)
+        fill_alg_only_connected_pixels_layout.addWidget(self.fill_alg_only_connected_pixels_button)
+        fill_tool_settings_layout.addLayout(fill_alg_only_connected_pixels_layout)
+
         fill_alg_visual_button_layout = QHBoxLayout()
         fill_alg_visual_button_txt = QLabel()
         fill_alg_visual_button_txt.setText(lang["visualize fill algorithm"])
         fill_alg_visual_button_layout.addWidget(fill_alg_visual_button_txt)
         self.fill_alg_visual_button = QRadioButton()
+        self.fill_alg_visual_button.setAutoExclusive(False)
         if ini["fill_alg_visual"] == "true": self.fill_alg_visual_button.setChecked(True)
         fill_alg_visual_button_layout.addWidget(self.fill_alg_visual_button)
         fill_tool_settings_layout.addLayout(fill_alg_visual_button_layout)
+
         fill_tool_settings_layout.addItem(spacer_item)
 
         self.fill_tool_tolerance_group = QGroupBox()
@@ -143,11 +155,17 @@ class PaintWindowSettings(QDialog):
         self.setLayout(mainLayout)
 
     def ok(self):
+        if self.fill_alg_only_connected_pixels_button.isChecked(): self.ini["fill_alg_only_connected_pixels"] = "true"
+        else: self.ini["fill_alg_only_connected_pixels"] = "false"
+
         if self.fill_alg_visual_button.isChecked(): self.ini["fill_alg_visual"] = "true"
         else: self.ini["fill_alg_visual"] = "false"
+
         if self.fill_tool_tolerance_group.isChecked(): self.ini["enable_fill_alg_tolerance"] = "true"
         else: self.ini["enable_fill_alg_tolerance"] = "false"
+
         self.ini["fill_alg_tolerance"] = self.set_fill_tool_tolerance.text()
+
         if self.image_maxsize_button.isChecked(): self.ini["image_maxsize"] = "true"
         else: self.ini["image_maxsize"] = "false"
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-PixelPaint 1.0
+PixelPaint 1.0.1
 (GUI/ Main)
 """
 
@@ -232,18 +232,21 @@ class GUI(QMainWindow):
             else:
                 paint_input_q.put(["tool", None])
 
-            #     draw width
-            paint_input_q.put(["draw_width", self.draw_width])
-
             #     save request
             if self.save_request[0]:
                 paint_input_q.put(["request", ["save", self.save_request[1]]])
                 self.save_request = (False, None)
 
-            #     visualize fill algorithm
+            #     draw_width
+            paint_input_q.put(["draw_width", self.draw_width])
+
+            #     fill_alg_only_connected_pixels
+            paint_input_q.put(["fill_alg_only_connected_pixels", self.ini["fill_alg_only_connected_pixels"]])
+
+            #     fill_alg_visual
             paint_input_q.put(["fill_alg_visual", self.ini["fill_alg_visual"]])
 
-            #     fill tolerance
+            #     fill_alg_tolerance
             paint_input_q.put(["fill_alg_tolerance", [self.ini["enable_fill_alg_tolerance"],
                 self.ini["fill_alg_tolerance"]]])
 
@@ -387,11 +390,32 @@ if __name__ == "__main__":
     # AppData -------------------------------------------------------------------------
     AppData = os.getenv('APPDATA')+"/PixelPaint"
 
+    # ini
     if os.path.isdir(AppData):  # PixelPaint AppData exists
 
         if os.path.exists(AppData+"/PixelPaint.ini"):  # PixelPaint.ini exists
 
             ini = ini_manager.get(AppData+"/PixelPaint.ini")  # load ini
+
+            # check ini
+            if "lang" not in ini:
+                ini["lang"] = "eng"
+            if "win_xpos" not in ini:
+                ini["win_xpos"] = "75"
+            if "win_ypos" not in ini:
+                ini["win_ypos"] = "75"
+            if "image_maxsize" not in ini:
+                ini["image_maxsize"] = "true"
+            if "fill_alg_only_connected_pixels" not in ini:
+                ini["fill_alg_only_connected_pixels"] = "false"
+            if "fill_alg_visual" not in ini:
+                ini["fill_alg_visual"] = "false"
+            if "enable_fill_alg_tolerance" not in ini:
+                ini["enable_fill_alg_tolerance"] = "false"
+            if "fill_alg_tolerance" not in ini:
+                ini["fill_alg_tolerance"] = "2"
+            if "open_help_on_start" not in ini:
+                ini["open_help_on_start"] = "false"
 
         else:  # PixelPaint.ini doesnt exist
 
@@ -401,7 +425,8 @@ if __name__ == "__main__":
                 "win_xpos": "75",
                 "win_ypos": "75",
                 "image_maxsize": "true",
-                "fill_alg_visual": "true",
+                "fill_alg_only_connected_pixels": "false",
+                "fill_alg_visual": "false",
                 "enable_fill_alg_tolerance": "false",
                 "fill_alg_tolerance": "2",
                 "open_help_on_start": "true"
@@ -418,12 +443,14 @@ if __name__ == "__main__":
             "win_xpos": "75",
             "win_ypos": "75",
             "image_maxsize": "true",
-            "fill_alg_visual": "true",
+            "fill_alg_only_connected_pixels": "false",
+            "fill_alg_visual": "false",
             "enable_fill_alg_tolerance": "false",
             "fill_alg_tolerance": "2",
             "open_help_on_start": "true"
         }
-        # ini will be saved when closing
+
+    # ini will be saved when closing
     # ---------------------------------------------------------------------------------
 
     paint_input_q = multiprocessing.Queue()
