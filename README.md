@@ -23,4 +23,4 @@ Pixel level drawing program (for Windows) - made with Python.<br/>
 ### how to build:
 - run exe_setup.py 
 - modify file-paths in PixelPaint_installer_setup.iss
-- run PixelPaint_installer_setup.iss with [InnoSetup](https://www.jrsoftware.org/isinfo.php)
+- run PixelPaint_installer_setup.iss with InnoSetup
