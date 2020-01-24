@@ -180,16 +180,20 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
                                 image.pixels[y][x].rgba[0],  image.pixels[y][x].rgba[3]
 
                     if path[-4:] == ".png" or path[-4:] == ".PNG":
-                        is_success, im_buf_arr = cv2.imencode(".png", save_image)
-                        image_name = path[len(path) - path[::-1].find("/"):path.find(".png")]
-                    elif path[-4:] == ".jpg" or path[-4:] == ".JPG":
-                        is_success, im_buf_arr = cv2.imencode(".jpg", save_image)
-                        image_name = path[len(path) - path[::-1].find("/"):path.find(".jpg")]
+                        try:
+                            cv2.imwrite(path, save_image, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+                        except:  # permission error
+                            gui_input_q.put("permission_error")
 
-                    try:
-                        im_buf_arr.tofile(path)
-                    except:  # permission error
-                        gui_input_q.put("permission_error")
+                        image_name = path[len(path) - path[::-1].find("/"):path.find(".png")]
+
+                    elif path[-4:] == ".jpg" or path[-4:] == ".JPG":
+                        try:
+                            cv2.imwrite(path, save_image, [cv2.IMWRITE_JPEG_QUALITY, 100])
+                        except:  # permission error
+                            gui_input_q.put("permission_error")
+
+                        image_name = path[len(path) - path[::-1].find("/"):path.find(".jpg")]
 
                     pygame.display.set_caption(image_name)
                     pygame.display.set_icon(pygame.image.load(path))
