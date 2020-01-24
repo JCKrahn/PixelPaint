@@ -2,6 +2,8 @@
 Pixel level drawing program (for Windows) - made with Python.
 
 
+<img src='prev_img.png' >
+
 
 ## Build:
 ### requires:
