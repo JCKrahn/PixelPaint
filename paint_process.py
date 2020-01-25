@@ -48,7 +48,7 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
         else:
             pygame.display.set_icon(pygame.image.load(title))
 
-            image_to_load = cv2.imdecode(numpy.fromfile(title, numpy.uint8), cv2.IMREAD_UNCHANGED)
+            image_to_load = cv2.imread(title, cv2.IMREAD_UNCHANGED)
 
             if (image_to_load.shape[0] < 999 and image_to_load.shape[1] < 999) or image_maxsize=="false":
 
@@ -83,15 +83,22 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
 
                         image = paint_window.Image(win, size, background, scale, pixel_colors)
 
-                    else:
+                    else:  # more than 4 channels
                         gui_input_q.put("image_format_not_supported")
                         gui_input_q.put("paint_win_closed")
                         sys.exit()
 
                 else:  # 1 channel:
-                    gui_input_q.put("image_format_not_supported")
-                    gui_input_q.put("paint_win_closed")
-                    sys.exit()
+                    pixel_colors = []
+                    for y in range(0, size[1]):
+                        row = []
+                        for x in range(0, size[0]):
+                            pixel_color = (image_to_load[y, x], image_to_load[y, x], image_to_load[y, x], 255)
+                            pixel_color = (pixel_color[2], pixel_color[1], pixel_color[0], pixel_color[3])
+                            row.append(pixel_color)
+                        pixel_colors.append(row)
+
+                    image = paint_window.Image(win, size, background, scale, pixel_colors)
 
                 if title[-4:] == ".png":
                     title = title[len(title) - title[::-1].find("/"):title.find(".png")]

@@ -27,7 +27,6 @@ eng = {
     "save image": "Save Image",
     "save as": "Save as",
     "exit": "Exit",
-
     "settings": "&Settings",
     "settings title": "Settings",
     "general settings": "General Settings",
@@ -45,10 +44,8 @@ eng = {
     "imageload settings": "Image Load Settings",
     "enable maxsize": "   Image-Maxsize",
     "image maxsize warning": "Disabling ImageMaxsize\ncan result in performance issues and crashes.",
-
     "help": "&Help",
     "get help": "open in Browser",
-
     "tools": "Tools",
     "draw": "Draw",
     "draw transparency": "Draw Transparency",
@@ -58,7 +55,6 @@ eng = {
     "undo": "undo",
     "redo": "redo",
     "draw width": "Draw Width",
-
     "color palette": "Color Palette",
     "color1/ main color": "Color1/ Main Color",
     "color2": "Color2",
@@ -76,17 +72,13 @@ eng = {
     "color14": "Color14",
     "color15": "Color15",
     "color16": "Color16",
-
     "cancel": "Cancel",
     "close": "Close",
-
     "close warning": "Unsaved changes are lost!",
     "close image": "Close Image",
-
     "image load error text": "An Error occurred \nwhile loading the image.",
-
     "image format error text": "The format of the image is not supported.",
-
+    "non ascii error": "The file-path contains \nnon ASCII characters (ä/ö/ü/ß...).",
     "untitled": "untitled"
 }
 
@@ -113,7 +105,6 @@ ger = {
     "save image": "Bild speichern",
     "save as": "Speichern unter",
     "exit": "Schließen",
-
     "settings": "&Einstellungen",
     "settings title": "Einstellungen",
     "general settings": "Allgemeine Einstellungen",
@@ -131,10 +122,8 @@ ger = {
     "imageload settings": "Bild Lade Einstellungen",
     "enable maxsize": "   Max. Bildgröße",
     "image maxsize warning": "Das Deaktivieren der maximalen Bildgröße\nkann zu Performanceproblemen und Abstürzen führen.",
-
     "help": "&Hilfe",
     "get help": "öffnen im Browser",
-
     "tools": "Werkzeuge",
     "draw": "Zeichnen",
     "draw transparency": "Transparenz Zeichnen",
@@ -144,7 +133,6 @@ ger = {
     "undo": "rückgängig",
     "redo": "wiederherstellen",
     "draw width": "Strich-Breite",
-
     "color palette": "Farb Palette",
     "color1/ main color": "Farbe1/ Haupt-Farbe",
     "color2": "Farbe2",
@@ -162,16 +150,12 @@ ger = {
     "color14": "Farbe14",
     "color15": "Farbe15",
     "color16": "Farbe16",
-
     "cancel": "Abbrechen",
     "close": "Schließen",
-
     "close warning": "Nicht gespeicherte Daten \ngehen verloren!",
     "close image": "Bild Schließen",
-
     "image load error text": "Beim Laden des Bildes \nist ein Fehler aufgetreten.",
-
     "image format error text": "Das Bildformat wird nicht unterstützt.",
-
+    "non ascii error": "Der Dateipfad beinhaltet \nnicht ASCII Buchstaben (ä/ö/ü/ß...).",
     "untitled": "unbenannt"
 }

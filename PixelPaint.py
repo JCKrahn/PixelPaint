@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-PixelPaint 1.0.1
+PixelPaint 1.0.2
 (GUI/ Main)
 """
 
@@ -28,7 +28,7 @@ class GUI(QMainWindow):
         super(GUI, self).__init__()
         # -----------------
         self.image_opened = False
-        self.image_file = None  # (filename, file type)
+        self.image_file = [None, None]  # (filename, file type)
         self.mainColor = None
         self.save_request = (False, None)  # (True/False, path)
         self.mainColor = None
@@ -267,7 +267,7 @@ class GUI(QMainWindow):
                         except:
                             pass
                     self.image_opened = False
-                    self.image_file = None
+                    self.image_file = [None, None]
 
             #     save
                 elif gui_input == "save":
@@ -318,16 +318,33 @@ class GUI(QMainWindow):
             if not self.image_file:
                 self.image_file = list(QFileDialog.getSaveFileName(self, self.lang["save image"], "C:\image",
                     "*.png;; *.jpg"))
+
+                try:
+                    self.image_file[0].decode("ascii")  # check if ASCII
+                except UnicodeEncodeError:  # image path not ASCII
+                    self.image_file = [None, None]
+                    error_message = gui_classes.ErrorMessage(self, (196, 86), "ERROR", self.lang["non ascii error"])
+                    error_message.show()
+
             if self.image_file[0]:
                 if self.image_file[0][-4:] != ".png" and self.image_file[0][-4:] != ".jpg" \
-                        and self.image_file[0][-4:] != ".PNG" and self.image_file[0][-4:] != ".JPG":
-                    self.image_file[0] = self.image_file[0] + self.image_file[1][1:]
+                    and self.image_file[0][-4:] != ".PNG" and self.image_file[0][-4:] != ".JPG":
+                        self.image_file[0] = self.image_file[0] + self.image_file[1][1:]
+
                 self.save_request = (True, self.image_file[0])
 
     def save_as(self):  # always ask for file name
         if self.image_opened:
             self.image_file = list(QFileDialog.getSaveFileName(self, self.lang["save image"], "C:\image",
                 "*.png;; *.jpg"))
+
+            try:
+                self.image_file[0].decode("ascii")  # check if ASCII
+            except UnicodeEncodeError:  # image path not ASCII
+                self.image_file = [None, None]
+                error_message = gui_classes.ErrorMessage(self, (196, 86), "ERROR", self.lang["non ascii error"])
+                error_message.show()
+
             if self.image_file[0]:
                 if self.image_file[0][-4:] != ".png" and self.image_file[0][-4:] != ".jpg" \
                         and self.image_file[0][-4:] != ".PNG" and self.image_file[0][-4:] != ".JPG":
@@ -336,17 +353,25 @@ class GUI(QMainWindow):
 
     def open(self):
         if not self.image_opened:
-            self.image_file = list(QFileDialog.getOpenFileName(self, self.lang["open image"], "C:\image",
-                "*.png;; *.jpg"))
-            if self.image_file[0]:
-                if self.image_file[0][-4:] != ".png" and self.image_file[0][-4:] != ".jpg"\
+            image_file = list(QFileDialog.getOpenFileName(self, self.lang["open image"], "C:\image", "*.png;; *.jpg"))
+            try:
+                image_file[0].decode("ascii")  # check if ASCII
+                self.image_file = image_file
+
+                if self.image_file[0]:
+                    if self.image_file[0][-4:] != ".png" and self.image_file[0][-4:] != ".jpg" \
                         and self.image_file[0][-4:] != ".PNG" and self.image_file[0][-4:] != ".JPG":
-                    self.image_file[0] = self.image_file[0] + self.image_file[1][1:]
-                self.image_opened = True
-                img = cv2.imdecode(numpy.fromfile(self.image_file[0], numpy.uint8), cv2.IMREAD_UNCHANGED)
-                multiprocessing.Process(target=paint_process.paint_process,
-                    args=(self.image_file[0], (img.shape[1], img.shape[0]), "Transparency", paint_input_q, gui_input_q,
-                        self.ini["image_maxsize"])).start()
+                            self.image_file[0] = self.image_file[0] + self.image_file[1][1:]
+
+                    self.image_opened = True
+
+                    img = cv2.imread(self.image_file[0], cv2.IMREAD_UNCHANGED)
+                    multiprocessing.Process(target=paint_process.paint_process, args=(self.image_file[0], (img.shape[1],
+                        img.shape[0]), "Transparency", paint_input_q, gui_input_q, self.ini["image_maxsize"])).start()
+
+            except UnicodeEncodeError:  # image path not ASCII
+                error_message = gui_classes.ErrorMessage(self, (196, 86), "ERROR", self.lang["non ascii error"])
+                error_message.show()
 
     def open_general_settings_menu(self):
         general_settings_menu = gui_classes.GeneralSettingsMenu(self, self.ini, self.lang)
