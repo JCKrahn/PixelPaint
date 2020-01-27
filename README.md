@@ -11,7 +11,7 @@ Pixel level drawing program (for Windows) - made with Python.<br/>
 ## Building exe + exe-installer from source code:
 ### requires:
 - PixelPaint source code
-- python 2.7
+- Python2.7 (multiprocessing with frozen programs on windows currently doesn't work with Python3)
 - python packages:
   - pywin32 (227)
   - numpy (1.16.6)
