@@ -7,7 +7,6 @@ PixelPaint 1.0.2
 
 import sys
 import os
-import numpy
 import cv2
 import win32gui
 from PyQt5.QtWidgets import *

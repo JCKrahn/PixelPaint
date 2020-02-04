@@ -37,15 +37,17 @@ setup(
                              "test",
                              "logging"]
                             }},
-    executables=[Executable(script="PixelPaint.py", base = "win32GUI", icon="build_resources\icon.ico")]
+    executables=[Executable(script="PixelPaint.py", base="win32GUI", icon="build_resources\\icon.ico")]
 )
 
 
-def delete_dir(pth) :
-    for sub in pth.iterdir() :
-        if sub.is_dir() :
+# ------------------------------------------------------
+
+def delete_dir(pth):
+    for sub in pth.iterdir():
+        if sub.is_dir():
             delete_dir(sub)
-        else :
+        else:
             sub.unlink()
     pth.rmdir()
 
