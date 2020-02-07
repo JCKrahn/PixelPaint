@@ -31,7 +31,7 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
         gui_id = win32gui.FindWindow(None, "PixelPaint")
         paint_win_id = win32gui.FindWindow(None, title)
         win32gui.MoveWindow(paint_win_id, win32gui.GetWindowRect(gui_id)[0] - 7, win32gui.GetWindowRect(gui_id)[1] + 46,
-                            size[0] + 20, size[1] + 20, True)  # x, y modified for freezed version
+                size[0] + 20, size[1] + 20, True)  # (x, y seem to be treated differently on the executable version)
 
         #   setup window
         win = pygame.display.set_mode((size[0] * scale + 20, size[1] * scale + 20), pygame.RESIZABLE)

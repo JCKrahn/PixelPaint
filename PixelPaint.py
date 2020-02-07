@@ -24,7 +24,7 @@ import language
 # GUI ------------------------------------------------------------------------------------------------------------------
 class GUI(QMainWindow):
     def __init__(self, AppData, ini):
-        super(GUI, self).__init__()
+        super(GUI, self).__init__(flags= Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
 
         # -----------------
         self.image_opened = False

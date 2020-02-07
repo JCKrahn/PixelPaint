@@ -509,6 +509,8 @@ class ErrorMessage(QDialog):
         main_layout = QVBoxLayout()
 
         text_label = QLabel()
+        lines = text.count("\n") + 1
+        text_label.setMinimumHeight(lines * 20)
         text_label.setText(text)
         text_label.setStyleSheet("background-color: rgb(220,220,220);")
         main_layout.addWidget(text_label)
@@ -533,6 +535,8 @@ class Message(QDialog):
         main_layout = QVBoxLayout()
 
         text_label = QLabel()
+        lines = text.count("\n") + 1
+        text_label.setMinimumHeight(lines * 20)
         text_label.setText(text)
         text_label.setStyleSheet("background-color: rgb(220,220,220);")
         main_layout.addWidget(text_label)
@@ -557,6 +561,8 @@ class CloseWarning(QDialog):
         main_layout = QVBoxLayout()
 
         text_label = QLabel()
+        lines = text.count("\n") + 1
+        text_label.setMinimumHeight(lines * 20)
         text_label.setText(text)
         text_label.setStyleSheet("background-color: rgb(220,220,220);")
         main_layout.addWidget(text_label)
@@ -573,7 +579,6 @@ class CloseWarning(QDialog):
         main_layout.addLayout(button_layout)
 
         self.setLayout(main_layout)
-
 # ----------------------------------------------------------------------------------------------------------------------
 
 
