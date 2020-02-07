@@ -21,9 +21,9 @@ A pixel level drawing program (for Windows) - made with Python.<br/>
   - pathlib2 (2.3.5)
   - cx-Freeze (5.1.1)
   - python-qt5 (0.1.10)
-- InnoSetup (for building the PixelPaint installer)
+- Inno Setup (for building the PixelPaint installer)
   
 ### how to build exe + exe-installer from source code:
 - run exe_setup.py 
 - modify file paths in PixelPaint_installer_setup.iss
-- run PixelPaint_installer_setup.iss with the 'Inno Setup Compiler'
+- run PixelPaint_installer_setup.iss with the Inno Setup Compiler
