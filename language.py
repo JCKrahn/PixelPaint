@@ -7,13 +7,13 @@ Language: eng/ ger dictionary
 eng = {
     "file": "&File",
     "new": "New",
-    "new project general desc": "<p>Set Width/ Height/ Background of your new Project</p>"
+    "new project general desc": "<p>Set Width/ Height/ Background of your new Image</p>"
                                 "<p>size[64 = default; min. = 1]</p>",
-    "new project width desc": "<p>Set the Width of your new Project</p>"
+    "new project width desc": "<p>Width</p>"
                               "<p>[64 = default; min. = 1]</p>",
-    "new project height desc": "<p>Set the Height of your new Project</p>"
+    "new project height desc": "<p>Height</p>"
                                "<p>[64 = default; min. = 1]</p>",
-    "new project background desc": "<p>Fill the Background of your new Project with:</p>"
+    "new project background desc": "<p>Fill the Background with:</p>"
                                    "Transparency / Color1",
     "set width": "set Width ",
     "set height": "set Height",
@@ -25,7 +25,7 @@ eng = {
     "image too big text": "The Image you are trying to open\nis too big.",
     "save": "Save",
     "save image": "Save Image",
-    "save as": "Save as",
+    "quick save": "Quicksave",
     "exit": "Exit",
     "settings": "&Settings",
     "settings title": "Settings",
@@ -74,24 +74,45 @@ eng = {
     "color16": "Color16",
     "cancel": "Cancel",
     "close": "Close",
+    "search": "Search",
+    "save as grayscale image": "   Save as Grayscale Image",
+    "advanced settings": "Advanced Settings",
     "close warning": "Unsaved changes are lost!",
     "close image": "Close Image",
     "image load error text": "An Error occurred \nwhile loading the image.",
     "image format error text": "The format of the image is not supported.",
     "non ascii error": "The file-path contains \nnon ASCII characters (ä/ö/ü/ß...).",
-    "untitled": "untitled"
+    "untitled": "untitled",
+    "save enlarged": "Save enlarged",
+    "size": "Size:",
+    "100% size":   "     100%",
+    "400% size":   "    400%",
+    "900% size":   "    900%",
+    "1600% size":  "  1600%",
+    "2500% size":  "  2500%",
+    "3600% size":  "  3600%",
+    "4900% size":  "  4900%",
+    "6400% size":  "  6400%",
+    "8100% size":  "  8100%",
+    "10000% size": "10000%",
+    "jpg (set quality)": "JPG [Quality]",
+    "png (set compression)": "PNG [Compression]",
+    "cant save image to this path": "PixelPaint is unable to save \nyour image to the current path.",
+    "image save error": "An Error occurred while saving the image, \n"
+                        "check if you have the permission \n"
+                        "to save a file to that path."
 }
 
 ger = {
     "file": "&Datei",
     "new": "Neu",
-    "new project general desc": "<p>Bestimme Höhe/ Breite/ Hintergrund deines neuen Bildes</p>"
+    "new project general desc": "<p>Bestimmen Sie Höhe/ Breite/ Hintergrund Ihres neuen Bildes</p>"
                                 "<p>Größe[64 = Standard; min. = 1]</p>",
-    "new project width desc": "<p>Höhe deines neuen Bildes</p>"
+    "new project width desc": "<p>Höhe</p>"
                               "<p>[64 = Standard; min. = 1]</p>",
-    "new project height desc": "<p>Breite deines neuen Bildes</p>"
+    "new project height desc": "<p>Breite</p>"
                                "<p>[64 = Standard; min. = 1]</p>",
-    "new project background desc": "<p>Fülle den Hintergrund deines Bildes mit:</p>"
+    "new project background desc": "<p>Fülle den Hintergrund mit:</p>"
                                    "Transparenz / Farbe1 (Hauptfarbe)",
     "set width": "Breite",
     "set height": "Höhe ",
@@ -100,10 +121,10 @@ ger = {
     "color1": "Farbe1",
     "open": "Öffnen",
     "open image": "Bild öffnen",
-    "image too big text": "Das Bild, das Sie öffnen möchten,\nist zug roß.",
+    "image too big text": "Das Bild, das Sie öffnen möchten, \nist zug roß.",
     "save": "Speichern",
-    "save image": "Bild speichern",
-    "save as": "Speichern unter",
+    "save image": "Speichern",
+    "quick save": "Schnellspeichern",
     "exit": "Schließen",
     "settings": "&Einstellungen",
     "settings title": "Einstellungen",
@@ -121,7 +142,8 @@ ger = {
     "tolerance": "Toleranz in %",
     "imageload settings": "Bild Lade Einstellungen",
     "enable maxsize": "   Max. Bildgröße",
-    "image maxsize warning": "Das Deaktivieren der maximalen Bildgröße\nkann zu Performanceproblemen und Abstürzen führen.",
+    "image maxsize warning": "Das Deaktivieren der maximalen Bildgröße \nkann zu Performanceproblemen und Abstürzen "
+                             "führen.",
     "help": "&Hilfe",
     "get help": "öffnen im Browser",
     "tools": "Werkzeuge",
@@ -152,10 +174,31 @@ ger = {
     "color16": "Farbe16",
     "cancel": "Abbrechen",
     "close": "Schließen",
+    "search": "Suchen",
+    "save as grayscale image": "   als Graustufen Bild speichern",
+    "advanced settings": "Erweiterte Einstellungen",
     "close warning": "Nicht gespeicherte Daten \ngehen verloren!",
     "close image": "Bild Schließen",
     "image load error text": "Beim Laden des Bildes \nist ein Fehler aufgetreten.",
     "image format error text": "Das Bildformat wird nicht unterstützt.",
     "non ascii error": "Der Dateipfad beinhaltet \nnicht ASCII Buchstaben (ä/ö/ü/ß...).",
-    "untitled": "unbenannt"
+    "untitled": "unbenannt",
+    "save enlarged": "vergrößert Speichern",
+    "size": "Größe:",
+    "100% size":   "     100%",
+    "400% size":   "     400%",
+    "900% size":   "    900%",
+    "1600% size":  "  1600%",
+    "2500% size":  "  2500%",
+    "3600% size":  "  3600%",
+    "4900% size":  "  4900%",
+    "6400% size":  "  6400%",
+    "8100% size":  "  8100%",
+    "10000% size": "10000%",
+    "jpg (set quality)": "JPG [Qualität]",
+    "png (set compression)": "PNG [Kompressionsstärke]",
+    "cant save image to this path": "PixelPaint kann Ihr Bild nicht \nunter dem angegebenen Pfad speichern.",
+    "image save error": "Während dem Speichern des Bildes ist ein Fehler \n"
+                        "aufgetreten, gehen Sie sicher, dass Sie die Berechtigung \n"
+                        "haben, eine Datei unter diesem Pfad zu speichern."
 }

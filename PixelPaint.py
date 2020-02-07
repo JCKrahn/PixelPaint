@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-PixelPaint 1.0.2
+PixelPaint 1.0.3
 (GUI/ Main)
 """
 
@@ -25,11 +25,12 @@ import language
 class GUI(QMainWindow):
     def __init__(self, AppData, ini):
         super(GUI, self).__init__()
+
         # -----------------
         self.image_opened = False
-        self.image_file = [None, None]  # (filename, file type)
-        self.mainColor = None
-        self.save_request = (False, None)  # (True/False, path)
+        self.image_info = [None,None,None,1,False]  # [filepath, filetype, compression/ quality, size-multi, greyscale]
+        self.save_request = False
+
         self.mainColor = None
         self.draw_width = "1*1"
 
@@ -49,24 +50,29 @@ class GUI(QMainWindow):
         menu = self.menuBar()
 
         # --File Menu
+        File = menu.addMenu(self.lang["file"])
+
         file_create_new = QAction(self.lang["new"], self)
         file_create_new.setShortcut("N")
         file_create_new.triggered.connect(self.create_new)
+        File.addAction(file_create_new)
+
         file_open = QAction(self.lang["open"], self)
         file_open.triggered.connect(self.open)
         file_open.setShortcut("O")
-        file_save = QAction(self.lang["save"], self)
-        file_save.triggered.connect(self.save)
+        File.addAction(file_open)
+
+        file_save = QAction(self.lang["quick save"], self)
+        file_save.triggered.connect(self.quick_save)
         file_save.setShortcut("S")
-        file_save_as = QAction(self.lang["save as"], self)
-        file_save_as.triggered.connect(self.save_as)
+        File.addAction(file_save)
+
+        file_save_as = QAction(self.lang["save"], self)
+        file_save_as.triggered.connect(self.save)
+        File.addAction(file_save_as)
+
         file_exit = QAction(self.lang["exit"], self)
         file_exit.triggered.connect(self.close)
-        File = menu.addMenu(self.lang["file"])
-        File.addAction(file_create_new)
-        File.addAction(file_open)
-        File.addAction(file_save)
-        File.addAction(file_save_as)
         File.addAction(file_exit)
 
         # --Settings Menu
@@ -232,9 +238,9 @@ class GUI(QMainWindow):
                 paint_input_q.put(["tool", None])
 
             #     save request
-            if self.save_request[0]:
-                paint_input_q.put(["request", ["save", self.save_request[1]]])
-                self.save_request = (False, None)
+            if self.save_request:
+                paint_input_q.put(["request", ["save", self.image_info]])
+                self.save_request = False
 
             #     draw_width
             paint_input_q.put(["draw_width", self.draw_width])
@@ -266,39 +272,37 @@ class GUI(QMainWindow):
                         except:
                             pass
                     self.image_opened = False
-                    self.image_file = [None, None]
+                    self.image_info = [None,None,None,1,False]
 
             #     save
                 elif gui_input == "save":
-                    self.save()
+                    self.quick_save()
 
             #     user wants to close paint win; ask for confirmation
                 elif gui_input == "paint_win_close_request":
-                    close_warning = gui_classes.CloseWarning(self, (152, 86), self.lang["close image"],
+                    close_warning = gui_classes.CloseWarning(self, self.lang["close image"],
                         self.lang["close warning"], self.lang["close"], self.lang["cancel"])
                     if close_warning.exec_() == 1:
                         paint_input_q.put(["request", "close"])
 
             #     image to load is too big
                 elif gui_input == "image_too_big":
-                    error_message = gui_classes.ErrorMessage(self, (200, 84), "ERROR", self.lang["image too big text"])
+                    error_message = gui_classes.ErrorMessage(self, "ERROR", self.lang["image too big text"])
+                    error_message.show()
+
+            #     permission error
+                elif gui_input == "image_save_error":
+                    error_message = gui_classes.ErrorMessage(self, "ERROR", self.lang["image save error"])
                     error_message.show()
 
             #     image load error
                 elif gui_input == "image_load_error":
-                    error_message = gui_classes.ErrorMessage(self, (160, 84), "ERROR",
-                        self.lang["image load error text"])
+                    error_message = gui_classes.ErrorMessage(self, "ERROR", self.lang["image load error text"])
                     error_message.show()
 
             #     image format not supported
                 elif gui_input == "image_format_not_supported":
-                    error_message = gui_classes.ErrorMessage(self, (226, 72), "ERROR",
-                        self.lang["image format error text"])
-                    error_message.show()
-
-            #     permission error
-                elif gui_input == "permission_error":
-                    error_message = gui_classes.ErrorMessage(self, (140, 72), "ERROR", "Permission Error")
+                    error_message = gui_classes.ErrorMessage(self, "ERROR", self.lang["image format error text"])
                     error_message.show()
 
         self.timer.start(250)
@@ -312,71 +316,53 @@ class GUI(QMainWindow):
                     args=(self.lang["untitled"], (prompt.config_width, prompt.config_height),  prompt.config_background,
                         paint_input_q, gui_input_q, "true")).start()
 
-    def save(self):  # only ask for file name if file name is not known
-        if self.image_opened:
-            if not self.image_file:
-                self.image_file = list(QFileDialog.getSaveFileName(self, self.lang["save image"], "C:\image",
-                    "*.png;; *.jpg"))
-
-                try:
-                    self.image_file[0].decode("ascii")  # check if ASCII
-                except UnicodeEncodeError:  # image path not ASCII
-                    self.image_file = [None, None]
-                    error_message = gui_classes.ErrorMessage(self, (196, 86), "ERROR", self.lang["non ascii error"])
-                    error_message.show()
-
-            if self.image_file[0]:
-                if self.image_file[0][-4:] != ".png" and self.image_file[0][-4:] != ".jpg" \
-                    and self.image_file[0][-4:] != ".PNG" and self.image_file[0][-4:] != ".JPG":
-                        self.image_file[0] = self.image_file[0] + self.image_file[1][1:]
-
-                self.save_request = (True, self.image_file[0])
-
-    def save_as(self):  # always ask for file name
-        if self.image_opened:
-            self.image_file = list(QFileDialog.getSaveFileName(self, self.lang["save image"], "C:\image",
-                "*.png;; *.jpg"))
-
-            try:
-                self.image_file[0].decode("ascii")  # check if ASCII
-            except UnicodeEncodeError:  # image path not ASCII
-                self.image_file = [None, None]
-                error_message = gui_classes.ErrorMessage(self, (196, 86), "ERROR", self.lang["non ascii error"])
-                error_message.show()
-
-            if self.image_file[0]:
-                if self.image_file[0][-4:] != ".png" and self.image_file[0][-4:] != ".jpg" \
-                        and self.image_file[0][-4:] != ".PNG" and self.image_file[0][-4:] != ".JPG":
-                    self.image_file[0] = self.image_file[0] + self.image_file[1][1:]
-                self.save_request = (True, self.image_file[0])
-
     def open(self):
         if not self.image_opened:
-            image_file = list(QFileDialog.getOpenFileName(self, self.lang["open image"], "C:\image", "*.png;; *.jpg"))
+            returned_path = list(QFileDialog.getOpenFileName(self, self.lang["open image"], "C:\image.png",
+                "*.png;; *.jpg"))[0]
             try:
-                image_file[0].decode("ascii")  # check if ASCII
-                self.image_file = image_file
+                returned_path.decode("ascii")  # check if ASCII
 
-                if self.image_file[0]:
-                    if self.image_file[0][-4:] != ".png" and self.image_file[0][-4:] != ".jpg" \
-                        and self.image_file[0][-4:] != ".PNG" and self.image_file[0][-4:] != ".JPG":
-                            self.image_file[0] = self.image_file[0] + self.image_file[1][1:]
+                self.image_info[0], self.image_info[1] = returned_path, returned_path[-3:]
+
+                if self.image_info[0]:
 
                     self.image_opened = True
 
-                    img = cv2.imread(self.image_file[0], cv2.IMREAD_UNCHANGED)
-                    multiprocessing.Process(target=paint_process.paint_process, args=(self.image_file[0], (img.shape[1],
+                    img = cv2.imread(self.image_info[0], cv2.IMREAD_UNCHANGED)
+                    multiprocessing.Process(target=paint_process.paint_process, args=(self.image_info[0], (img.shape[1],
                         img.shape[0]), "Transparency", paint_input_q, gui_input_q, self.ini["image_maxsize"])).start()
 
             except UnicodeEncodeError:  # image path not ASCII
-                error_message = gui_classes.ErrorMessage(self, (196, 86), "ERROR", self.lang["non ascii error"])
+                error_message = gui_classes.ErrorMessage(self, "ERROR", self.lang["non ascii error"])
                 error_message.show()
+
+    def quick_save(self):
+        if self.image_opened:
+            if (self.image_info[0] is None) or (self.image_info[1] is None) or (self.image_info[2] is None):
+                prompt = gui_classes.SavePrompt(self, self.lang)
+                if prompt.exec_() == 1:
+                    self.image_info = prompt.image_info
+
+                else: return 0  # cancelled
+
+            self.save_request = True
+
+    def save(self):
+        if self.image_opened:
+            prompt = gui_classes.SavePrompt(self, self.lang)
+            if prompt.exec_() == 1:
+                self.image_info = prompt.image_info
+
+            else: return 0  # cancelled
+
+            self.save_request = True
 
     def open_general_settings_menu(self):
         general_settings_menu = gui_classes.GeneralSettingsMenu(self, self.ini, self.lang)
         if general_settings_menu.exec_() == 1:
             self.ini = general_settings_menu.ini
-            message = gui_classes.Message(self, (212, 86), self.lang["settings title"], self.lang["need to restart"])
+            message = gui_classes.Message(self, self.lang["settings title"], self.lang["need to restart"])
             message.show()
             ini_manager.write(self.AppData+"/PixelPaint.ini", self.ini)
 

@@ -6,6 +6,7 @@ GUI Classes
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+import os
 
 
 # pop up windows -------------------------------------------------------------------------------------------------------
@@ -14,6 +15,7 @@ class GeneralSettingsMenu(QDialog):
         super(GeneralSettingsMenu, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.setWindowTitle(lang["general settings"])
         self.setFixedSize(200, 110)
+        self.setModal(True)
 
         self.ini = ini
         self.lang = lang
@@ -60,14 +62,17 @@ class PaintWindowSettings(QDialog):
     def __init__(self, parent, ini, lang):
         super(PaintWindowSettings, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.setWindowTitle(lang["paintwindow settings"])
-        self.setFixedSize(230, 230)
+        self.setFixedSize(275, 246)
+        self.setModal(True)
 
         self.ini = ini
         self.lang = lang
 
         mainLayout = QVBoxLayout()
 
-        spacer_item = QSpacerItem(220, 10, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        spacer_item_1 = QSpacerItem(40, 6, QSizePolicy.Minimum)
+        spacer_item_2 = QSpacerItem(30, 6, QSizePolicy.Minimum)
+        spacer_item_3 = QSpacerItem(25, 6, QSizePolicy.Minimum)
 
         # Fill Tool Settings ------------------------------------------------------
         fill_tool_settings_group = QGroupBox()
@@ -81,8 +86,11 @@ class PaintWindowSettings(QDialog):
         self.fill_alg_only_connected_pixels_button = QRadioButton()
         self.fill_alg_only_connected_pixels_button.setAutoExclusive(False)
         if ini["fill_alg_only_connected_pixels"] == "true": self.fill_alg_only_connected_pixels_button.setChecked(True)
+        fill_alg_only_connected_pixels_layout.addItem(spacer_item_2)
         fill_alg_only_connected_pixels_layout.addWidget(self.fill_alg_only_connected_pixels_button)
         fill_tool_settings_layout.addLayout(fill_alg_only_connected_pixels_layout)
+
+        fill_tool_settings_layout.addItem(spacer_item_1)
 
         fill_alg_visual_button_layout = QHBoxLayout()
         fill_alg_visual_button_txt = QLabel()
@@ -91,10 +99,11 @@ class PaintWindowSettings(QDialog):
         self.fill_alg_visual_button = QRadioButton()
         self.fill_alg_visual_button.setAutoExclusive(False)
         if ini["fill_alg_visual"] == "true": self.fill_alg_visual_button.setChecked(True)
+        fill_alg_visual_button_layout.addItem(spacer_item_3)
         fill_alg_visual_button_layout.addWidget(self.fill_alg_visual_button)
         fill_tool_settings_layout.addLayout(fill_alg_visual_button_layout)
 
-        fill_tool_settings_layout.addItem(spacer_item)
+        fill_tool_settings_layout.addItem(spacer_item_1)
 
         self.fill_tool_tolerance_group = QGroupBox()
         self.fill_tool_tolerance_group.setTitle(lang["fill tool tolerance"])
@@ -129,7 +138,7 @@ class PaintWindowSettings(QDialog):
         if ini["image_maxsize"] == "true": self.image_maxsize_button.setChecked(True)
         def image_loader_maxsize_button_clicked():
             if not self.image_maxsize_button.isChecked():
-                message = Message(self, (284, 86), self.lang["paintwindow settings"],
+                message = Message(self, self.lang["paintwindow settings"],
                     self.lang["image maxsize warning"])
                 message.show()
         self.image_maxsize_button.clicked.connect(image_loader_maxsize_button_clicked)
@@ -172,15 +181,209 @@ class PaintWindowSettings(QDialog):
         self.done(1)
 
 
+class SavePrompt(QDialog):
+    def __init__(self, parent, lang):
+        super(SavePrompt, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        self.setWindowTitle(lang["save image"])
+        self.setMinimumWidth(240)
+        self.setMaximumWidth(320)
+        self.setMaximumHeight(300)
+        self.setModal(True)
+
+        self.lang = lang
+
+        self.filetype = None
+
+        self.image_info = None  # [filepath, filetype, compression/ quality, size-multi, greyscale]
+
+        main_layout = QVBoxLayout()
+
+        # filepath
+        file_path_layout = QHBoxLayout()
+        self.file_path = QLineEdit()
+        self.file_path.textChanged.connect(self.file_path_edit_text_changed)
+        search_file_path_button = QPushButton()
+        search_file_path_button.setText(lang["search"])
+        search_file_path_button.clicked.connect(self.search_file_path)
+        file_path_layout.addWidget(self.file_path)
+        file_path_layout.addWidget(search_file_path_button)
+        main_layout.addLayout(file_path_layout)
+
+        # png compression
+        self.png_compression_setting = QGroupBox()
+        self.png_compression_setting.hide()
+        self.png_compression_setting.setTitle(lang["png (set compression)"])
+        png_compression_setting_layout = QVBoxLayout()
+        self.png_compression_slider = QSlider(Qt.Horizontal)
+        self.png_compression_slider.setMinimum(0)
+        self.png_compression_slider.setMaximum(5)
+        self.png_compression_slider.setValue(0)
+        self.png_compression_slider.setTickPosition(QSlider.TicksBelow)
+        self.png_compression_slider.setTickInterval(1)
+        png_compression_setting_layout.addWidget(self.png_compression_slider)
+        self.png_compression_setting.setLayout(png_compression_setting_layout)
+        main_layout.addWidget(self.png_compression_setting)
+
+        # jpg quality
+        self.jpg_quality_setting = QGroupBox()
+        self.jpg_quality_setting.hide()
+        self.jpg_quality_setting.setTitle(lang["jpg (set quality)"])
+        jpg_quality_setting_layout = QVBoxLayout()
+        self.jpg_quality_slider = QSlider(Qt.Horizontal)
+        self.jpg_quality_slider.setMinimum(1)
+        self.jpg_quality_slider.setMaximum(100)
+        self.jpg_quality_slider.setValue(100)
+        self.jpg_quality_slider.setTickPosition(QSlider.TicksBelow)
+        self.jpg_quality_slider.setTickInterval(10)
+        jpg_quality_setting_layout.addWidget(self.jpg_quality_slider)
+        self.jpg_quality_setting.setLayout(jpg_quality_setting_layout)
+        main_layout.addWidget(self.jpg_quality_setting)
+
+        # advanced settings
+        advanced_settings = QGroupBox()
+        advanced_settings.setTitle(lang["advanced settings"])
+        advanced_settings_layout = QVBoxLayout()
+
+        spacer_item = QSpacerItem(24, 6, QSizePolicy.Minimum)
+
+        save_as_greyscale_img_layout = QHBoxLayout()
+        save_as_greyscale_img_txt = QLabel()
+        save_as_greyscale_img_txt.setText(lang["save as grayscale image"])
+        save_as_greyscale_img_layout.addWidget(save_as_greyscale_img_txt)
+        self.save_as_greyscale_img_button = QRadioButton()
+        self.save_as_greyscale_img_button.setChecked(False)
+        save_as_greyscale_img_layout.addItem(spacer_item)
+        save_as_greyscale_img_layout.addWidget(self.save_as_greyscale_img_button)
+        advanced_settings_layout.addLayout(save_as_greyscale_img_layout)
+
+        advanced_settings_layout.addItem(spacer_item)
+
+        save_enlarged_setting = QGroupBox()
+        save_enlarged_setting.setTitle(lang["save enlarged"])
+        save_enlarged_setting.setCheckable(True)
+        save_enlarged_setting.setChecked(False)
+        save_enlarged_setting_layout = QHBoxLayout()
+        save_enlarged_text = QLabel()
+        save_enlarged_text.setText(lang["size"])
+        save_enlarged_setting_layout.addWidget(save_enlarged_text)
+        self.set_size = QComboBox()
+        self.set_size.addItem(lang["100% size"])
+        self.set_size.addItem(lang["400% size"])
+        self.set_size.addItem(lang["900% size"])
+        self.set_size.addItem(lang["1600% size"])
+        self.set_size.addItem(lang["2500% size"])
+        self.set_size.addItem(lang["3600% size"])
+        self.set_size.addItem(lang["4900% size"])
+        self.set_size.addItem(lang["6400% size"])
+        self.set_size.addItem(lang["8100% size"])
+        self.set_size.addItem(lang["10000% size"])
+        save_enlarged_setting_layout.addWidget(self.set_size)
+        save_enlarged_setting.setLayout(save_enlarged_setting_layout)
+        advanced_settings_layout.addWidget(save_enlarged_setting)
+
+        advanced_settings.setLayout(advanced_settings_layout)
+        main_layout.addWidget(advanced_settings)
+
+        # buttons
+        button_layout = QHBoxLayout()
+
+        save_button = QPushButton()
+        save_button.setText(lang["save"])
+        save_button.clicked.connect(self.save)
+        save_button.setDefault(True)
+        button_layout.addWidget(save_button)
+
+        cancel_button = QPushButton()
+        cancel_button.setText(lang["cancel"])
+        cancel_button.clicked.connect(lambda: self.done(0))
+        button_layout.addWidget(cancel_button)
+
+        main_layout.addLayout(button_layout)
+
+        self.setLayout(main_layout)
+
+    def file_path_edit_text_changed(self):
+        if self.file_path.text()[-4:] == ".png" or self.file_path.text()[-4:] == ".PNG":
+            self.filetype = "png"
+            self.jpg_quality_setting.hide()
+            self.png_compression_setting.show()
+
+        elif self.file_path.text()[-4:] == ".jpg" or self.file_path.text()[-4:] == ".JPG":
+            self.filetype = "jpg"
+            self.png_compression_setting.hide()
+            self.jpg_quality_setting.show()
+
+    def search_file_path(self):
+        img_file_path, filetype = list(QFileDialog.getSaveFileName(self, self.lang["save image"], "C:\image",
+            "*.png;; *.jpg"))
+
+        try:
+            img_file_path.decode("ascii")  # check if ASCII
+        except UnicodeEncodeError:  # image path not ASCII
+            img_file_path = None
+            error_message = ErrorMessage(self, "ERROR", self.lang["non ascii error"])
+            error_message.show()
+
+        if img_file_path:
+            # file extension
+            if img_file_path[-4:] != ".png" and img_file_path[-4:] != ".jpg" \
+            and img_file_path[-4:] != ".PNG" and img_file_path[-4:] != ".JPG":
+                self.filetype = filetype[2:]  # (without ".")
+                img_file_path = img_file_path + "." + self.filetype
+            else:
+                self.filetype = img_file_path[2:]  # (without ".")
+
+            self.file_path.setText(img_file_path)
+
+            if self.filetype == "JPG" or self.filetype == "jpg":
+                self.png_compression_setting.hide()
+                self.jpg_quality_setting.show()
+            else:
+                self.jpg_quality_setting.hide()
+                self.png_compression_setting.show()
+
+    def save(self):
+        path = self.file_path.text()
+        try:
+            path.decode("ascii")  # check if ASCII
+
+            # check if valid path
+            if os.path.exists(path[:len(path)-path[::-1].find("/")]):
+                # check if valid file extension
+                if path[-4:] == ".png" or path[-4:] == ".jpg" or path[-4:] == ".PNG" or path[0][-4:] == ".JPG":
+
+                    if self.png_compression_setting.isVisible():
+                        self.image_info = [path, self.filetype, self.png_compression_slider.value(),
+                            int(self.set_size.currentText()[:-1]) / 100, self.save_as_greyscale_img_button.isChecked()]
+                        self.done(1)
+                        return 0
+
+                    elif self.jpg_quality_setting.isVisible():
+                        self.image_info = [path, self.filetype, self.jpg_quality_slider.value(),
+                            int(self.set_size.currentText()[:-1]) / 100, self.save_as_greyscale_img_button.isChecked()]
+                        self.done(1)
+                        return 0
+
+            # not valid
+            error_message = ErrorMessage(self, "ERROR", self.lang["cant save image to this path"])
+            error_message.show()
+
+        except UnicodeEncodeError:  # image path not ASCII
+            error_message = ErrorMessage(self, "ERROR", self.lang["non ascii error"])
+            error_message.show()
+
+
 class NewProjectConfigPrompt(QDialog):
     def __init__(self, parent, lang):
         self.lang = lang
-        # standard values
+        # standard values --
         self.config_width = "64"
         self.config_height = "64"
         self.config_background = (255, 255, 255, 0)
-        # -------------------------
+        # ------------------
         super(NewProjectConfigPrompt, self).__init__(parent)
+
+        self.setModal(True)
 
         self.setWindowTitle(self.lang["new"])
         self.setFixedSize(178, 130)
@@ -297,11 +500,10 @@ class NewProjectConfigPrompt(QDialog):
 
 
 class ErrorMessage(QDialog):
-    def __init__(self, parent, size, title, text):
+    def __init__(self, parent, title, text):
         super(ErrorMessage, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon("data/icons/error.png"))
-        self.setFixedSize(*size)
         self.setModal(True)
 
         main_layout = QVBoxLayout()
@@ -322,11 +524,10 @@ class ErrorMessage(QDialog):
 
 
 class Message(QDialog):
-    def __init__(self, parent, size, title, text):
+    def __init__(self, parent, title, text):
         super(Message, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon("data/icons/icon.png"))
-        self.setFixedSize(*size)
         self.setModal(True)
 
         main_layout = QVBoxLayout()
@@ -347,11 +548,10 @@ class Message(QDialog):
 
 
 class CloseWarning(QDialog):
-    def __init__(self, parent, size, title, text, close_button_text, cancel_button_text):
+    def __init__(self, parent, title, text, close_button_text, cancel_button_text):
         super(CloseWarning, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon("data/icons/icon.png"))
-        self.setFixedSize(*size)
         self.setModal(True)
 
         main_layout = QVBoxLayout()
@@ -481,8 +681,11 @@ class Color(QToolButton):  # ColorTool (select color | change via ColorDialog)
                             Color:checked {
                                     border-color: rgb(226,87,76); }""")
 
-    def color_picker(self):  # pick color via ColorDialog; update_style()
-        self.color = QColorDialog.getColor().getRgb()[:3]
+    def color_picker(self):  # change color; update_style()
+        if self.color != (0, 0, 0):  # (black doesnt work as initial color)
+            self.color = QColorDialog.getColor(parent=self.parent().parent(),initial=QColor(*self.color)).getRgb()[:3]
+        else:
+            self.color = QColorDialog.getColor(parent=self.parent().parent()).getRgb()[:3]  # initial color = white
         self.update_style()
 
     def eventFilter(self, obj, event):  # -> left_mouse_click: select/ unselect | right_mouse_click: color_picker()

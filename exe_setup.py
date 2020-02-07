@@ -9,9 +9,24 @@ from cx_Freeze import setup, Executable
 
 sys.argv.append("build")
 
+
+def delete_dir(path):
+    for sub in path.iterdir():
+        if sub.is_dir():
+            delete_dir(sub)
+        else:
+            sub.unlink()
+    path.rmdir()
+
+
+if os.path.exists("build"):
+    delete_dir(pathlib2.Path("build"))
+    print "deleting directory: build"
+
+
 setup(
     name="PixelPaint",
-    version="1.0",
+    version="1.0.3",
     options={"build_exe":{"packages":
                                 ["sys",
                                  "os",
@@ -41,18 +56,14 @@ setup(
 )
 
 
-# ------------------------------------------------------
-
-def delete_dir(pth):
-    for sub in pth.iterdir():
-        if sub.is_dir():
-            delete_dir(sub)
-        else:
-            sub.unlink()
-    pth.rmdir()
-
-
 os.rename("build\\exe.win-amd64-2.7", "build\\exe")
+print "renaming directory: build/exe.win-amd64-2.7 -> build/exe"
+
 delete_dir(pathlib2.Path("build\\exe\\tcl"))
+print "deleting directory: build/exe/tcl"
+
 delete_dir(pathlib2.Path("build\\exe\\tk"))
-pathlib2.Path("build\\installer").mkdir(exist_ok=True)
+print "deleting directory: build/exe/tk"
+
+pathlib2.Path("build\\installer").mkdir()
+print "creating directory: build/installer"

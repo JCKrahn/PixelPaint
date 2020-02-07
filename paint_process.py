@@ -2,7 +2,6 @@
 Paint Process
 """
 
-
 import sys
 import time
 import pygame
@@ -13,7 +12,6 @@ import paint_window
 
 
 def paint_process(title, size, background, paint_input_q, gui_input_q, image_maxsize):
-
     pygame.init()
 
     try:
@@ -33,7 +31,7 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
         gui_id = win32gui.FindWindow(None, "PixelPaint")
         paint_win_id = win32gui.FindWindow(None, title)
         win32gui.MoveWindow(paint_win_id, win32gui.GetWindowRect(gui_id)[0] - 7, win32gui.GetWindowRect(gui_id)[1] + 46,
-            size[0] + 20, size[1] + 20, True)  # x, y modified for freezed version
+                            size[0] + 20, size[1] + 20, True)  # x, y modified for freezed version
 
         #   setup window
         win = pygame.display.set_mode((size[0] * scale + 20, size[1] * scale + 20), pygame.RESIZABLE)
@@ -50,7 +48,7 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
 
             image_to_load = cv2.imread(title, cv2.IMREAD_UNCHANGED)
 
-            if (image_to_load.shape[0] < 999 and image_to_load.shape[1] < 999) or image_maxsize=="false":
+            if (image_to_load.shape[0] < 999 and image_to_load.shape[1] < 999) or image_maxsize == "false":
 
                 if len(image_to_load.shape) == 3:  # more then one channel:
 
@@ -177,33 +175,106 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
                 draw_width = paint_input[1]
 
             elif paint_input[0] == "request":
-                if paint_input[1][0] == "save":
-                    path = paint_input[1][1]
-                    save_image = numpy.zeros((image.real_h_in_pixels, image.real_w_in_pixels, 4), numpy.uint8)
 
-                    for x in range(image.real_w_in_pixels):
-                        for y in range(image.real_h_in_pixels):
-                            save_image[y, x] = image.pixels[y][x].rgba[2],  image.pixels[y][x].rgba[1],\
-                                image.pixels[y][x].rgba[0],  image.pixels[y][x].rgba[3]
+                if paint_input[1][0] == "save":  # save
+                    try:
+                        image_info = paint_input[1][1]
 
-                    if path[-4:] == ".png" or path[-4:] == ".PNG":
-                        try:
-                            cv2.imwrite(path, save_image, [cv2.IMWRITE_PNG_COMPRESSION, 0])
-                        except:  # permission error
-                            gui_input_q.put("permission_error")
+                        path = image_info[0]
+                        filetype = image_info[1]
+                        multiplier = image_info[3]/2  # size multiplier / 2 = side multiplier
+                        if multiplier < 1: multiplier = 1  # at least 1
+                        # compression or quality = image_info[2]]
+                        grayscale = image_info[4]
 
-                        image_name = path[len(path) - path[::-1].find("/"):path.find(".png")]
+                        if filetype == "png" and not grayscale:
+                            img = numpy.zeros((image.real_h_in_pixels * multiplier, image.real_w_in_pixels * multiplier,
+                                4), numpy.uint8)
 
-                    elif path[-4:] == ".jpg" or path[-4:] == ".JPG":
-                        try:
-                            cv2.imwrite(path, save_image, [cv2.IMWRITE_JPEG_QUALITY, 100])
-                        except:  # permission error
-                            gui_input_q.put("permission_error")
+                            y = 0
+                            for row in image.pixels:
+                                x = 0
+                                for pixel in row:
 
-                        image_name = path[len(path) - path[::-1].find("/"):path.find(".jpg")]
+                                    for i in range(0, multiplier):
+                                        img[y, x+i] = pixel.rgba[2], pixel.rgba[1], pixel.rgba[0], pixel.rgba[3]
+                                        for j in range(1, multiplier):
+                                            img[y+j, x+i] = pixel.rgba[2], pixel.rgba[1], pixel.rgba[0], pixel.rgba[3]
 
-                    pygame.display.set_caption(image_name)
-                    pygame.display.set_icon(pygame.image.load(path))
+                                    x += multiplier
+                                y += multiplier
+
+                            cv2.imwrite(path, img, [cv2.IMWRITE_PNG_COMPRESSION, image_info[2]])
+
+                            if path[-4:] == ".png":
+                                image_name = path[len(path) - path[::-1].find("/"):path.find(".png")]
+                            elif path[-4:] == ".PNG":
+                                image_name = path[len(path) - path[::-1].find("/"):path.find(".PNG")]
+
+                        elif filetype == "jpg" and not grayscale:
+                            img = numpy.zeros((image.real_h_in_pixels * multiplier, image.real_w_in_pixels * multiplier,
+                                3), numpy.uint8)
+
+                            y = 0
+                            for row in image.pixels:
+                                x = 0
+                                for pixel in row:
+
+                                    for i in range(0, multiplier):
+                                        img[y, x + i] = pixel.rgba[2], pixel.rgba[1], pixel.rgba[0]
+                                        for j in range(1, multiplier):
+                                            img[y + j, x + i] = pixel.rgba[2], pixel.rgba[1], pixel.rgba[0]
+
+                                    x += multiplier
+                                y += multiplier
+
+                            cv2.imwrite(path, img, [cv2.IMWRITE_JPEG_QUALITY, image_info[2]])
+
+                            if path[-4:] == ".jpg":
+                                image_name = path[len(path) - path[::-1].find("/"):path.find(".jpg")]
+                            elif path[-4:] == ".JPG":
+                                image_name = path[len(path) - path[::-1].find("/"):path.find(".JPG")]
+
+                        elif grayscale:
+                            img = numpy.zeros((image.real_h_in_pixels * multiplier, image.real_w_in_pixels * multiplier,
+                                3), numpy.uint8)
+
+                            y = 0
+                            for row in image.pixels:
+                                x = 0
+                                for pixel in row:
+
+                                    for i in range(0, multiplier):
+                                        img[y, x + i] = pixel.rgba[2], pixel.rgba[1], pixel.rgba[0]
+                                        for j in range(1, multiplier):
+                                            img[y + j, x + i] = pixel.rgba[2], pixel.rgba[1], pixel.rgba[0]
+
+                                    x += multiplier
+                                y += multiplier
+
+                            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+                            if filetype == "png":
+                                cv2.imwrite(path, img, [cv2.IMWRITE_PNG_COMPRESSION, image_info[2]])
+
+                                if path[-4:] == ".png":
+                                    image_name = path[len(path) - path[::-1].find("/"):path.find(".png")]
+                                elif path[-4:] == ".PNG":
+                                    image_name = path[len(path) - path[::-1].find("/"):path.find(".PNG")]
+
+                            elif filetype == "jpg":
+                                cv2.imwrite(path, img, [cv2.IMWRITE_JPEG_QUALITY, image_info[2]])
+
+                                if path[-4:] == ".jpg":
+                                    image_name = path[len(path) - path[::-1].find("/"):path.find(".jpg")]
+                                elif path[-4:] == ".JPG":
+                                    image_name = path[len(path) - path[::-1].find("/"):path.find(".JPG")]
+
+                        pygame.display.set_icon(pygame.image.load(path))
+                        pygame.display.set_caption(image_name)
+
+                    except:
+                        gui_input_q.put("image_save_error")
 
                 elif paint_input[1] == "close":
                     pygame.display.quit()
@@ -253,35 +324,35 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y+1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y + 1, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y+1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y + 1, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y+1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y + 1, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y-1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y - 1, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y-1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y - 1, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y-1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y - 1, selected_color + (255,))
                     except:
                         pass
 
@@ -329,67 +400,67 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y+1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y + 1, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y+2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y + 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y+2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y + 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y+2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y + 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y+2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y + 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y+2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y + 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y+1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y + 1, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y-1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y - 1, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y-2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y - 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y-2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y - 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y-2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y - 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y-2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y - 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y-2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y - 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y-1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y - 1, selected_color + (255,))
                     except:
                         pass
 
@@ -501,99 +572,99 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y+1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y + 1, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y+2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y + 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y+3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y + 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y+3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y + 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y+3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y + 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y+3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y + 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y+3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y + 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y+3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y + 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y+3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y + 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y+2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y + 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y+1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y + 1, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y-1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y - 1, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y-2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y - 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y-3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y - 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y-3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y - 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y-3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y - 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y-3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y - 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y-3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y - 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y-3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y - 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y-3, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y - 3, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y-2, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y - 2, selected_color + (255,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y-1, selected_color + (255,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y - 1, selected_color + (255,))
                     except:
                         pass
 
@@ -627,35 +698,35 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y+1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y + 1, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y+1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y + 1, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y+1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y + 1, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y-1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y - 1, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y-1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y - 1, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y-1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y - 1, selected_color + (0,))
                     except:
                         pass
 
@@ -703,67 +774,67 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y+1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y + 1, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y+2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y + 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y+2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y + 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y+2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y + 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y+2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y + 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y+2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y + 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y+1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y + 1, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y-1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y - 1, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y-2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y - 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y-2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y - 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y-2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y - 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y-2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y - 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y-2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y - 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y-1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y - 1, selected_color + (0,))
                     except:
                         pass
 
@@ -875,99 +946,99 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y+1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y + 1, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y+2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y + 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y+3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y + 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y+3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y + 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y+3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y + 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y+3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y + 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y+3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y + 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y+3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y + 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y+3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y + 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y+2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y + 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y+1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y + 1, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y-1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y - 1, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y-2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y - 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-3, center_pixel_y-3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 3, center_pixel_y - 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-2, center_pixel_y-3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 2, center_pixel_y - 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x-1, center_pixel_y-3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x - 1, center_pixel_y - 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x, center_pixel_y-3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x, center_pixel_y - 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+1, center_pixel_y-3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 1, center_pixel_y - 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+2, center_pixel_y-3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 2, center_pixel_y - 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y-3, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y - 3, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y-2, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y - 2, selected_color + (0,))
                     except:
                         pass
                     try:
-                        image.draw_pixel(center_pixel_x+3, center_pixel_y-1, selected_color + (0,))
+                        image.draw_pixel(center_pixel_x + 3, center_pixel_y - 1, selected_color + (0,))
                     except:
                         pass
 
@@ -985,7 +1056,7 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
                 while image.pressed():
                     try:
                         image.erase_pixel(int((pygame.mouse.get_pos()[0] - image.xywh[0]) / image.scale),
-                            int((pygame.mouse.get_pos()[1] - image.xywh[1]) / image.scale))
+                                          int((pygame.mouse.get_pos()[1] - image.xywh[1]) / image.scale))
                         pygame.display.update()
                     except:
                         pass
@@ -1364,10 +1435,10 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
                     max_deviation = int(256 * fill_alg_tolerance / 100)
 
                     if image.pixel_exists(int((mouse_pos[0] - image.xywh[0]) / image.scale),
-                            int((mouse_pos[1] - image.xywh[1]) / image.scale)):  # starting pixel exists:
+                                          int((mouse_pos[1] - image.xywh[1]) / image.scale)):  # starting pixel exists:
 
                         color_to_match = image.pixels[int((mouse_pos[1] - image.xywh[1]) / image.scale)][
-                                int((mouse_pos[0] - image.xywh[0]) / image.scale)].rgba
+                            int((mouse_pos[0] - image.xywh[0]) / image.scale)].rgba
 
                         if color_to_match != selected_color + (255,):
 
@@ -1383,7 +1454,7 @@ def paint_process(title, size, background, paint_input_q, gui_input_q, image_max
                                                 color_to_match[1] <= max_deviation \
                                                 and -1 * max_deviation <= image.pixels[y][x].rgba[2] - \
                                                 color_to_match[2] <= max_deviation \
-                                                and -1 * max_deviation <=image.pixels[y][x].rgba[3] - \
+                                                and -1 * max_deviation <= image.pixels[y][x].rgba[3] - \
                                                 color_to_match[3] <= max_deviation:
                                             image.draw_pixel(x, y, selected_color + (255,))
 
