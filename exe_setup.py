@@ -26,7 +26,7 @@ if os.path.exists("build"):
 
 setup(
     name="PixelPaint",
-    version="1.0.3",
+    version="1.0.4",
     options={"build_exe":{"packages":
                                 ["sys",
                                  "os",
