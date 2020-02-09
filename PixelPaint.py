@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-PixelPaint 1.0.3
+PixelPaint 1.0.4
 (GUI/ Main)
 """
 
@@ -309,7 +309,7 @@ class GUI(QMainWindow):
 
     def create_new(self):  # opens ConfigurationPrompt -> create new project
         if not self.image_opened:
-            prompt = gui_classes.NewProjectConfigPrompt(self, self.lang)
+            prompt = gui_classes.NewPrompt(self, self.lang)
             if prompt.exec_() == 1:  # no error/ window not closed, user has configured his new project
                 self.image_opened = True
                 multiprocessing.Process(target=paint_process.paint_process,
@@ -318,14 +318,13 @@ class GUI(QMainWindow):
 
     def open(self):
         if not self.image_opened:
-            returned_path = list(QFileDialog.getOpenFileName(self, self.lang["open image"], "C:\image.png",
-                "*.png;; *.jpg"))[0]
+            returned_path = list(QFileDialog.getOpenFileName(self, self.lang["open image"], "C:\\", "*.png *.jpg"))[0]
             try:
                 returned_path.decode("ascii")  # check if ASCII
 
                 self.image_info[0], self.image_info[1] = returned_path, returned_path[-3:]
 
-                if self.image_info[0]:
+                if os.path.exists(returned_path):
 
                     self.image_opened = True
 
@@ -367,7 +366,7 @@ class GUI(QMainWindow):
             ini_manager.write(self.AppData+"/PixelPaint.ini", self.ini)
 
     def open_paint_window_settings_menu(self):
-        paint_window_settings_menu = gui_classes.PaintWindowSettings(self, self.ini, self.lang)
+        paint_window_settings_menu = gui_classes.PaintWindowSettingsMenu(self, self.ini, self.lang)
         if paint_window_settings_menu.exec_() == 1:
             self.ini = paint_window_settings_menu.ini
             ini_manager.write(self.AppData+"/PixelPaint.ini", self.ini)
@@ -407,7 +406,7 @@ if __name__ == "__main__":
 
             ini = ini_manager.get(AppData+"/PixelPaint.ini")  # load ini
 
-            # check ini
+            # check ini -> repair if necessary
             if "lang" not in ini:
                 ini["lang"] = "eng"
             if "win_xpos" not in ini:
@@ -423,7 +422,7 @@ if __name__ == "__main__":
             if "enable_fill_alg_tolerance" not in ini:
                 ini["enable_fill_alg_tolerance"] = "false"
             if "fill_alg_tolerance" not in ini:
-                ini["fill_alg_tolerance"] = "2"
+                ini["fill_alg_tolerance"] = "20"
             if "open_help_on_start" not in ini:
                 ini["open_help_on_start"] = "false"
 
@@ -438,7 +437,7 @@ if __name__ == "__main__":
                 "fill_alg_only_connected_pixels": "false",
                 "fill_alg_visual": "false",
                 "enable_fill_alg_tolerance": "false",
-                "fill_alg_tolerance": "2",
+                "fill_alg_tolerance": "20",
                 "open_help_on_start": "true"
             }
             # ini will be saved when closing
@@ -456,7 +455,7 @@ if __name__ == "__main__":
             "fill_alg_only_connected_pixels": "false",
             "fill_alg_visual": "false",
             "enable_fill_alg_tolerance": "false",
-            "fill_alg_tolerance": "2",
+            "fill_alg_tolerance": "20",
             "open_help_on_start": "true"
         }
 

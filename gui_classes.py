@@ -58,9 +58,9 @@ class GeneralSettingsMenu(QDialog):
         self.done(1)
 
 
-class PaintWindowSettings(QDialog):
+class PaintWindowSettingsMenu(QDialog):
     def __init__(self, parent, ini, lang):
-        super(PaintWindowSettings, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        super(PaintWindowSettingsMenu, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
         self.setWindowTitle(lang["paintwindow settings"])
         self.setFixedSize(275, 246)
         self.setModal(True)
@@ -203,7 +203,7 @@ class SavePrompt(QDialog):
         self.file_path = QLineEdit()
         self.file_path.textChanged.connect(self.file_path_edit_text_changed)
         search_file_path_button = QPushButton()
-        search_file_path_button.setText(lang["search"])
+        search_file_path_button.setText(lang["save as"])
         search_file_path_button.clicked.connect(self.search_file_path)
         file_path_layout.addWidget(self.file_path)
         file_path_layout.addWidget(search_file_path_button)
@@ -314,26 +314,33 @@ class SavePrompt(QDialog):
             self.jpg_quality_setting.show()
 
     def search_file_path(self):
-        img_file_path, filetype = list(QFileDialog.getSaveFileName(self, self.lang["save image"], "C:\image",
-            "*.png;; *.jpg"))
+        if self.file_path.text().find("\\") > 0:  # if  / in prev-path
+            prev_path = self.file_path.text()[:len(self.file_path.text())-self.file_path.text()[::-1].find("/")]
+        else:  # if \ in prev-path
+            prev_path = self.file_path.text()[:len(self.file_path.text()) - self.file_path.text()[::-1].find("\\")]
+
+        if os.path.exists(prev_path):
+            path, filetype = list(QFileDialog.getSaveFileName(self, self.lang["save image"], prev_path,"*.png;; *.jpg"))
+        else:
+            path, filetype = list(QFileDialog.getSaveFileName(self, self.lang["save image"], "C:\\", "*.png;; *.jpg"))
 
         try:
-            img_file_path.decode("ascii")  # check if ASCII
+            path.decode("ascii")  # check if ASCII
         except UnicodeEncodeError:  # image path not ASCII
-            img_file_path = None
+            path = None
             error_message = ErrorMessage(self, "ERROR", self.lang["non ascii error"])
             error_message.show()
 
-        if img_file_path:
+        if path:
             # file extension
-            if img_file_path[-4:] != ".png" and img_file_path[-4:] != ".jpg" \
-            and img_file_path[-4:] != ".PNG" and img_file_path[-4:] != ".JPG":
+            if path[-4:] != ".png" and path[-4:] != ".jpg" \
+            and path[-4:] != ".PNG" and path[-4:] != ".JPG":
                 self.filetype = filetype[2:]  # (without ".")
-                img_file_path = img_file_path + "." + self.filetype
+                path = path + "." + self.filetype
             else:
-                self.filetype = img_file_path[2:]  # (without ".")
+                self.filetype = path[2:]  # (without ".")
 
-            self.file_path.setText(img_file_path)
+            self.file_path.setText(path)
 
             if self.filetype == "JPG" or self.filetype == "jpg":
                 self.png_compression_setting.hide()
@@ -373,7 +380,7 @@ class SavePrompt(QDialog):
             error_message.show()
 
 
-class NewProjectConfigPrompt(QDialog):
+class NewPrompt(QDialog):
     def __init__(self, parent, lang):
         self.lang = lang
         # standard values --
@@ -381,7 +388,7 @@ class NewProjectConfigPrompt(QDialog):
         self.config_height = "64"
         self.config_background = (255, 255, 255, 0)
         # ------------------
-        super(NewProjectConfigPrompt, self).__init__(parent)
+        super(NewPrompt, self).__init__(parent)
 
         self.setModal(True)
 
