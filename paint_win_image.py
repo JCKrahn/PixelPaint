@@ -1,8 +1,3 @@
-"""
-Paint Window
-"""
-
-
 import pygame
 
 
@@ -28,13 +23,14 @@ class Image:
         self.scale = scale
         self.pixel_surface = PixelSurface((scale, scale))
 
-        # create pixels ------------------------------------------------------------------------------------------------
-        if wh[0] % 2 == 0:  # if even width:
+        # create pixels
+
+        if wh[0] % 2 == 0:  # if even width
             if not input_pixel_colors:
                 if background == (255, 255, 255, 0):
                     self.pixels = []
                     y = 0
-                    n = -1  # to change transparency color alternately to white/ grey
+                    n = -1  # transparency color alternately white, grey
                     for row in range(wh[1]):
                         row = []
                         x = 0
@@ -75,7 +71,7 @@ class Image:
             else:  # create pixels from list of pixel colors
                 self.pixels = []
                 y = 0
-                n = -1  # to change transparency color alternately to white/ grey
+                n = -1  # transparency color alternately white, grey
                 for row_n in input_pixel_colors:
                     row = []
                     x = 0
@@ -93,12 +89,12 @@ class Image:
                     self.pixels.append(row)
                     y += scale
 
-        else:  # if uneven width:
+        else:  # if uneven width
             if not input_pixel_colors:
                 if background == (255, 255, 255, 0):
                     self.pixels = []
                     y = 0
-                    n = -1  # to change transparency color alternately to white/ grey
+                    n = -1  # transparency color alternately white, grey
                     for row in range(wh[1]):
                         row = []
                         x = 0
@@ -139,7 +135,7 @@ class Image:
             else:  # create pixels from list of pixel colors
                 self.pixels = []
                 y = 0
-                n = -1  # to change transparency color alternately to white/ grey
+                n = -1  # transparency color alternately white, grey
                 for row_n in input_pixel_colors:
                     row = []
                     x = 0
@@ -155,14 +151,12 @@ class Image:
                         n = n * -1
                     self.pixels.append(row)
                     y += scale
-        # --------------------------------------------------------------------------------------------------------------
 
         self.draw_pixels()
 
     def draw_pixels(self):
         for row in self.pixels:
             for pixel in row:
-                # draw pixel
                 if pixel.rgba[3] == 0:
                     self.pixel_surface.fill(pixel.transparency_color)
                 else:
@@ -252,7 +246,7 @@ class Image:
 
     def get_neighbor_pixels(self, x, y):  # (not diagonally)
         pixels = []
-        if self.real_w_in_pixels > x+1 >= 0 and self.real_h_in_pixels > y >= 0:  # first check if pixel exists
+        if self.real_w_in_pixels > x+1 >= 0 and self.real_h_in_pixels > y >= 0:
             pixels.append((x+1, y))
         if self.real_w_in_pixels > x >= 0 and self.real_h_in_pixels > y+1 >= 0:
             pixels.append((x, y+1))

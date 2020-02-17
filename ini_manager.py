@@ -1,8 +1,3 @@
-"""
-INI FILE MANAGEMENT
-"""
-
-
 def get(path):  # return ini dict from given ini file path
     with open(path, "r") as file:
         file = file.readlines()

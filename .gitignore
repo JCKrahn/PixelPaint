@@ -1,12 +1,12 @@
 .idea
 build
 
-gui_classes.pyc
+PixelPaint.pyc
+main_win_process.pyc
+paint_win_process.pyc
+paint_win_image.pyc
 ini_manager.pyc
 language.pyc
-paint_process.pyc
-paint_window.pyc
-PixelPaint.pyc
 
 .gitattributes
 

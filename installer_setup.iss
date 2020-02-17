@@ -1,5 +1,5 @@
 #define MyAppName "PixelPaint"
-#define MyAppVersion "1.0.4"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "Julius Krahn"
 #define MyAppExeName "PixelPaint.exe"
 

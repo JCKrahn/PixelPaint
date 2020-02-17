@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Language: eng/ ger dictionary
-"""
-
 
 eng = {
     "file": "&File",
@@ -54,7 +50,7 @@ eng = {
     "erase": "Erase",
     "undo": "undo",
     "redo": "redo",
-    "draw width": "Draw Width",
+    "draw thickness": "Draw Thickness",
     "color palette": "Color Palette",
     "color1/ main color": "Color1/ Main Color",
     "color2": "Color2",
@@ -154,7 +150,7 @@ ger = {
     "erase": "Radieren",
     "undo": "rückgängig",
     "redo": "wiederherstellen",
-    "draw width": "Strich-Breite",
+    "draw thickness": "Strich-Größe",
     "color palette": "Farb Palette",
     "color1/ main color": "Farbe1/ Haupt-Farbe",
     "color2": "Farbe2",
