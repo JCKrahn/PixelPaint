@@ -24,7 +24,8 @@ def run():
 
 class MainWindow(QMainWindow):
     def __init__(self):
-        super(MainWindow, self).__init__(None, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        super(MainWindow, self).__init__(None, Qt.WindowTitleHint | Qt.WindowCloseButtonHint |
+                                         Qt.WindowMinimizeButtonHint)
 
         self.mainQ = multiprocessing.Queue()
         self.paintQ = multiprocessing.Queue()
