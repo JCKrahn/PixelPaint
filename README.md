@@ -1,6 +1,5 @@
 <img src='img/logo.png' width='600'>
 
-A pixel level drawing program (for Windows).<br/>
 [Download releases](https://github.com/JCKrahn/PixelPaint/releases) (PixelPaint installer)
 
 
