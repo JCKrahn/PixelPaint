@@ -279,6 +279,11 @@ class MainWindow(QMainWindow):
                         self.lang["close"], self.lang["cancel"])
                     if close_warning.exec_() == 1:
                         self.paintQ.put(["request", "close"])
+                        while not self.mainQ.empty():  # clear mainQ
+                            try:
+                                _ = self.mainQ.get()
+                            except:
+                                pass
 
                     close_warning.destroy()
 

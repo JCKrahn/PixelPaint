@@ -11,16 +11,14 @@
 .container
 {
   width: 80%;
-  min-width: 400px;
   max-width: 1000px;
   margin: 0 auto;
 }
 
 header
 {
-    background: black;
-    padding-top: 50px;
-    padding-bottom: 50px;
+    background-color: black;
+    padding: 50px 0;
     margin-bottom: 60px
 }
 
@@ -31,16 +29,15 @@ h1
   text-align: center;
 }
 
-.main
-{
-  background: white;
-}
-
 
 .block
 {
   margin-top: 24px;
   margin-bottom: 24px;
+  padding: 12px;
+  background-color: #fcf4d9;
+  border-radius: 8px;
+  border: rgba(220, 220, 220, 0.25) solid 4px;
 }
 
 h2
@@ -57,9 +54,8 @@ ul
 
 footer
 {
-  background: black;
-  padding-top: 50px;
-  padding-bottom: 50px;
+  background-color: black;
+  padding: 50px 0;
   margin-top: 60px;
   text-align: center;
   color: white;
