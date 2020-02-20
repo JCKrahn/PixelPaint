@@ -16,6 +16,7 @@ import pathlib2
 
 
 def run():
+    global PixelPaint
     PixelPaint = QApplication(sys.argv)
     main_win = MainWindow()
     main_win.show()
@@ -24,8 +25,8 @@ def run():
 
 class MainWindow(QMainWindow):
     def __init__(self):
-        super(MainWindow, self).__init__(None, Qt.WindowTitleHint | Qt.WindowCloseButtonHint |
-                                         Qt.WindowMinimizeButtonHint)
+        super(MainWindow, self).__init__(None, Qt.CustomizeWindowHint | Qt.Window | Qt.WindowTitleHint |
+            Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint | Qt.MSWindowsFixedSizeDialogHint)
 
         self.mainQ = multiprocessing.Queue()
         self.paintQ = multiprocessing.Queue()
@@ -94,8 +95,6 @@ class MainWindow(QMainWindow):
         self.colors = []  # list of colors from color palette
 
         self.move(int(self.ini["win_xpos"]), int(self.ini["win_ypos"]))
-        self.setFixedWidth(846)
-        self.setFixedHeight(61)
         self.setWindowTitle("PixelPaint")
         self.setWindowIcon(QIcon("data/icons/icon.png"))
 
@@ -186,7 +185,6 @@ class MainWindow(QMainWindow):
         color_palette = self.addToolBar(self.lang["color palette"])
         color_palette.setStyleSheet("spacing: 2px")
         color_palette.setToolTip(self.lang["color palette"])
-        color_palette.setFixedHeight(40)
         color_palette.setMovable(False)
         color_palette.addSeparator()
 
@@ -199,12 +197,17 @@ class MainWindow(QMainWindow):
             self.colors.append(Color(self.lang["color"+str(i)], (255, 255, 255)))
             color_palette.addWidget(self.colors[i])
 
-        # ----------------------------
+        # height
+        toolbar_height = QToolBar().iconSize().height()
+        menu_bar_height = toolbar_height + 6 + ((toolbar_height - self.menuBar().height()) / -6)
+        self.setFixedHeight(menu_bar_height + toolbar_height)
 
+        # open help on start
         if self.ini["open_help_on_start"] == "true":
             self.ini["open_help_on_start"] = "false"
             self.open_help_page()
 
+        # process communication
         self.process_comm_timer = QTimer()
         self.process_comm_timer.timeout.connect(self.process_comm)
         self.process_comm_timer.start(250)
@@ -517,16 +520,14 @@ class ReDoButton(QToolButton):
 
 class SavePrompt(QDialog):
     def __init__(self, parent, lang):
-        super(SavePrompt, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        super(SavePrompt, self).__init__(parent, Qt.CustomizeWindowHint | Qt.Window | Qt.MSWindowsFixedSizeDialogHint |
+                                         Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
 
         self.lang = lang
         self.filetype = None
         self.image_info = None  # [filepath, filetype, compression/ quality, size-multi, greyscale]
 
         self.setWindowTitle(lang["save image"])
-        self.setMinimumWidth(240)
-        self.setMaximumWidth(320)
-        self.setMaximumHeight(300)
         self.setModal(True)
 
         main_layout = QVBoxLayout()
@@ -720,7 +721,8 @@ class SavePrompt(QDialog):
 
 class NewPrompt(QDialog):
     def __init__(self, parent, lang):
-        super(NewPrompt, self).__init__(parent)
+        super(NewPrompt, self).__init__(parent, Qt.CustomizeWindowHint | Qt.Window | Qt.MSWindowsFixedSizeDialogHint |
+                                        Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
 
         self.lang = lang
         self.config_width = "64"
@@ -729,7 +731,6 @@ class NewPrompt(QDialog):
 
         self.setModal(True)
         self.setWindowTitle(self.lang["new"])
-        self.setFixedSize(178, 130)
         self.setModal(True)
         self.setWhatsThis(self.lang["new project general desc"])
 
@@ -772,9 +773,6 @@ class NewPrompt(QDialog):
         set_background_layout.addWidget(setBackground_txt)
         set_background_layout.addWidget(self.setBackground)
         main_layout.addLayout(set_background_layout)
-
-        spacerItem = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        main_layout.addItem(spacerItem)
 
         buttonLayout = QHBoxLayout()
 
@@ -849,13 +847,13 @@ class NewPrompt(QDialog):
 
 class GeneralSettingsMenu(QDialog):
     def __init__(self, parent, ini, lang):
-        super(GeneralSettingsMenu, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        super(GeneralSettingsMenu, self).__init__(parent, Qt.CustomizeWindowHint | Qt.Window | Qt.WindowCloseButtonHint|
+                                                  Qt.MSWindowsFixedSizeDialogHint | Qt.WindowTitleHint)
 
         self.ini = ini
         self.lang = lang
 
         self.setWindowTitle(lang["general settings"])
-        self.setFixedSize(200, 110)
         self.setModal(True)
 
         mainLayout = QVBoxLayout()
@@ -903,13 +901,13 @@ class GeneralSettingsMenu(QDialog):
 
 class PaintWindowSettingsMenu(QDialog):
     def __init__(self, parent, ini, lang):
-        super(PaintWindowSettingsMenu, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        super(PaintWindowSettingsMenu, self).__init__(parent, Qt.CustomizeWindowHint | Qt.Window | Qt.WindowTitleHint |
+                                                      Qt.MSWindowsFixedSizeDialogHint | Qt.WindowCloseButtonHint)
 
         self.ini = ini
         self.lang = lang
 
         self.setWindowTitle(lang["paintwindow settings"])
-        self.setFixedSize(275, 246)
         self.setModal(True)
 
         mainLayout = QVBoxLayout()
@@ -1032,7 +1030,8 @@ class PaintWindowSettingsMenu(QDialog):
 
 class Message(QDialog):
     def __init__(self, parent, title, text):
-        super(Message, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        super(Message, self).__init__(parent, Qt.CustomizeWindowHint | Qt.Window | Qt.WindowTitleHint |
+                                      Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
 
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon("data/icons/icon.png"))
@@ -1062,7 +1061,8 @@ class Message(QDialog):
 
 class CloseWarning(QDialog):
     def __init__(self, parent, title, text, close_button_text, cancel_button_text):
-        super(CloseWarning, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        super(CloseWarning, self).__init__(parent, Qt.CustomizeWindowHint | Qt.Window | Qt.WindowTitleHint |
+                                           Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
 
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon("data/icons/icon.png"))
@@ -1098,7 +1098,8 @@ class CloseWarning(QDialog):
 
 class ErrorMessage(QDialog):
     def __init__(self, parent, title, text):
-        super(ErrorMessage, self).__init__(parent, Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+        super(ErrorMessage, self).__init__(parent, Qt.CustomizeWindowHint | Qt.Window | Qt.WindowTitleHint |
+                                           Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
 
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon("data/icons/error.png"))
