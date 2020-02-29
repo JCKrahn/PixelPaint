@@ -1,8 +1,8 @@
 <img src='img/logo.png' width='600'>
 
-[Download releases (PixelPaint installer)](https://github.com/juliuskrahn/PixelPaint/releases)
+[Download releases](https://github.com/juliuskrahn/PixelPaint/releases)
 
-[PixelPaint website](https://pixelpaint.pythonanywhere.com)
+[PixelPaint website](https://pixelpaint.pythonanywhere.com) ;  [(PixelPaint website GitHub)](https://github.com/juliuskrahn/PixelPaint_Website)
 
 
 ## Preview:
