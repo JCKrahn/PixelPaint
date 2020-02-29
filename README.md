@@ -2,7 +2,7 @@
 
 [Download releases](https://github.com/juliuskrahn/PixelPaint/releases)
 
-[PixelPaint website](https://pixelpaint.pythonanywhere.com) ;  [(PixelPaint website GitHub)](https://github.com/juliuskrahn/PixelPaint_Website)
+[PixelPaint website](https://pixelpaint.eu.pythonanywhere.com) ;  [(PixelPaint website GitHub)](https://github.com/juliuskrahn/PixelPaint_Website)
 
 
 ## Preview:
