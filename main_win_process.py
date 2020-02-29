@@ -38,7 +38,6 @@ class MainWindow(QMainWindow):
             if os.path.exists(self.AppData + "/PixelPaint.ini"):
 
                 self.ini = ini_manager.get(self.AppData + "/PixelPaint.ini")
-                # check ini; repair if necessary
                 if "lang" not in self.ini:
                     self.ini["lang"] = "eng"
                 if "win_xpos" not in self.ini:
@@ -188,13 +187,13 @@ class MainWindow(QMainWindow):
         color_palette.setMovable(False)
         color_palette.addSeparator()
 
-        self.colors.append(Color(self.lang["color1/ main color"], (0, 0, 0)))
+        self.colors.append(Color(self.lang["color1"], (0, 0, 0)))
         color_palette.addWidget(self.colors[0])
         self.colors[0].setChecked(True)
         color_palette.addSeparator()
 
         for i in range(1, 16):
-            self.colors.append(Color(self.lang["color"+str(i)], (255, 255, 255)))
+            self.colors.append(Color(self.lang["color"+str(i+1)], (255, 255, 255)))
             color_palette.addWidget(self.colors[i])
 
         # height
@@ -217,9 +216,9 @@ class MainWindow(QMainWindow):
 
             # -> paintQ
             #   color
-            for i in range(0, len(self.colors)):
-                if self.colors[i].isChecked():
-                    self.paintQ.put(["color", self.colors[i].color])
+            for color in self.colors:
+                if color.isChecked():
+                    self.paintQ.put(["color", color.rgb])
 
             #   tool
             if self.draw_tool.isChecked():
@@ -426,18 +425,18 @@ class Tool(QToolButton):
 
 
 class Color(QToolButton):
-    def __init__(self, name, color):
+    def __init__(self, name, rgb):
         super(Color, self).__init__()
         self.name = name
         self.setToolTip(self.name)
-        self.color = color
+        self.rgb = rgb
         self.setCheckable(True)
         self.setAutoExclusive(True)
         self.installEventFilter(self)
         self.update_style()
 
     def update_style(self):
-        self.setStyleSheet("Color { background-color: rgb" + str(self.color) + """;
+        self.setStyleSheet("Color { background-color: rgb" + str(self.rgb) + """;
                                     border-style: inset;
                                     border-width: 3px;
                                     border-color: rgb(180,180,180); }
@@ -448,10 +447,10 @@ class Color(QToolButton):
                                     border-color: rgb(226,87,76); }""")
 
     def color_picker(self):
-        if self.color != (0, 0, 0):  # (black doesnt work as initial color)
-            self.color = QColorDialog.getColor(parent=self.parent().parent(), initial=QColor(*self.color)).getRgb()[:3]
+        if self.rgb != (0, 0, 0):  # (black doesnt work as initial color)
+            self.rgb = QColorDialog.getColor(parent=self.parent().parent(), initial=QColor(*self.rgb)).getRgb()[:3]
         else:
-            self.color = QColorDialog.getColor(parent=self.parent().parent()).getRgb()[:3]  # initial color = white
+            self.rgb = QColorDialog.getColor(parent=self.parent().parent()).getRgb()[:3]  # initial color = white
         self.update_style()
 
     def eventFilter(self, obj, event):
@@ -806,37 +805,25 @@ class NewPrompt(QDialog):
         if self.setBackground.currentText() == self.lang["transparency"]:
             self.config_background = (255, 255, 255, 0)
         elif self.setBackground.currentText() == self.lang["color1"]:
-            self.config_background = self.parent().colors[0] + (255,)
+            self.config_background = self.parent().colors[0].rgb + (255,)
 
         if self.config_width == "-" or self.config_width == "+": self.config_width = "1"
         if self.config_height == "-" or self.config_height == "+": self.config_height = "1"
 
-        if len(self.config_width) >= 1 and len(self.config_height) >= 1:
+        if len(self.config_width) >= 1:
             self.config_width = int(self.config_width)
-            self.config_height = int(self.config_height)
-            if self.config_width < 1: self.config_width = 1
-            if self.config_height < 1: self.config_height = 1
-            return self.done(1)
-
-        if not len(self.config_width) >= 1:
+            if self.config_width < 1:
+                self.config_width = 1
+        else:
             self.config_width = 64
-            if not len(self.config_height) >= 1:
-                self.config_height = 64
-                return self.done(1)
+
+        if len(self.config_height) >= 1:
             self.config_height = int(self.config_height)
-            if self.config_height < 1: self.config_height = 1
-            return self.done(1)
-
-        if not len(self.config_height) >= 1:
+            if self.config_height < 1:
+                self.config_height = 1
+        else:
             self.config_height = 64
-            self.config_width = int(self.config_width)
-            if self.config_width < 1: self.config_width = 1
-            return self.done(1)
 
-        self.config_width = int(self.config_width)
-        self.config_height = int(self.config_height)
-        if self.config_width < 1: self.config_width = 1
-        if self.config_height < 1: self.config_height = 1
         return self.done(1)
 
     # has to be destroyed externally when closing via done()
@@ -1043,7 +1030,6 @@ class Message(QDialog):
         lines = text.count("\n") + 1
         text_label.setMinimumHeight(lines * 20)
         text_label.setText(text)
-        text_label.setStyleSheet("background-color: rgb(220,220,220);")
         main_layout.addWidget(text_label)
 
         button_layout = QHBoxLayout()
@@ -1074,7 +1060,6 @@ class CloseWarning(QDialog):
         lines = text.count("\n") + 1
         text_label.setMinimumHeight(lines * 20)
         text_label.setText(text)
-        text_label.setStyleSheet("background-color: rgb(220,220,220);")
         main_layout.addWidget(text_label)
 
         button_layout = QHBoxLayout()
@@ -1111,7 +1096,6 @@ class ErrorMessage(QDialog):
         lines = text.count("\n") + 1
         text_label.setMinimumHeight(lines * 20)
         text_label.setText(text)
-        text_label.setStyleSheet("background-color: rgb(220,220,220);")
         main_layout.addWidget(text_label)
 
         button_layout = QHBoxLayout()

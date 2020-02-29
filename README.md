@@ -1,6 +1,8 @@
 <img src='img/logo.png' width='600'>
 
-[Download releases](https://github.com/JCKrahn/PixelPaint/releases) (PixelPaint installer)
+[Download releases (PixelPaint installer)](https://github.com/juliuskrahn/PixelPaint/releases)
+
+[PixelPaint website](https://pixelpaint.pythonanywhere.com)
 
 
 ## Preview:
@@ -11,16 +13,16 @@
 ### requires:
 - PixelPaint source code
 - Microsoft Visual C++ Redistributable Package ([x86](https://www.microsoft.com/en-us/download/details.aspx?id=29); [x64](https://www.microsoft.com/en-us/download/details.aspx?id=15336))
-- Python2.7 (multiprocessing with frozen programs on windows currently doesn't work with Python3)
+- Python2.7 
 - python packages:
-  - pywin32 (227)
-  - numpy (1.16.6)
-  - opencv-python (4.1.2.30)
-  - pygame (1.9.6)
-  - pathlib2 (2.3.5)
-  - cx-Freeze (5.1.1)
-  - python-qt5 (0.1.10)
-- Inno Setup (for building the PixelPaint installer)
+  - python-qt5 (v0.1.10)
+  - pygame (v1.9.6)
+  - pywin32 (v227)
+  - numpy (v1.16.6)
+  - opencv-python (v4.1.2.30)
+  - pathlib2 (v2.3.5)
+  - cx-Freeze (v5.1.1)
+- Inno Setup Compiler (for building the PixelPaint installer)
   
 ### how to build exe + exe-installer from source code:
 - run exe_setup.py 
