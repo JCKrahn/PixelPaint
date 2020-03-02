@@ -140,9 +140,13 @@ class MainWindow(QMainWindow):
         #   Help Menu
         help_menu = menu.addMenu(self.lang["help"])
 
-        help_action = QAction(self.lang["get help"], self)
-        help_action.triggered.connect(self.open_help_page)
-        help_menu.addAction(help_action)
+        help_action_online = QAction(self.lang["get help online"], self)
+        help_action_online.triggered.connect(lambda: self.open_help_page(True))
+        help_menu.addAction(help_action_online)
+
+        help_action_offline = QAction(self.lang["get help offline"], self)
+        help_action_offline.triggered.connect(self.open_help_page)
+        help_menu.addAction(help_action_offline)
 
         # Tool Bar
         tools = self.addToolBar(self.lang["tools"])
@@ -388,11 +392,14 @@ class MainWindow(QMainWindow):
 
         paint_win_settings_menu.destroy()
 
-    def open_help_page(self):
-        if self.ini["lang"] == "eng":
-            webbrowser.open(os.path.abspath("data/help/help_eng.html"), 2)
-        elif self.ini["lang"] == "ger":
-            webbrowser.open(os.path.abspath("data/help/help_ger.html"), 2)
+    def open_help_page(self, online=False):
+        if not online:
+            if self.ini["lang"] == "eng":
+                webbrowser.open(os.path.abspath("data/help/help_eng.html"), 2)
+            elif self.ini["lang"] == "ger":
+                webbrowser.open(os.path.abspath("data/help/help_ger.html"), 2)
+        else:
+            webbrowser.open("https://pixelpaint.eu.pythonanywhere.com/help", 2)
 
     def closeEvent(self, *args, **kwargs):
         gui_id = win32gui.FindWindow(None, "PixelPaint")
