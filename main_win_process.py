@@ -316,8 +316,8 @@ class MainWindow(QMainWindow):
             prompt = NewPrompt(self, self.lang)
             if prompt.exec_() == 1:
                 self.paint_win_open = True
-                multiprocessing.Process(target=paint_win_process.run, args=(self.lang["untitled"], (prompt.config_width,
-                    prompt.config_height), prompt.config_background, self.paintQ, self.mainQ, "true")).start()
+                multiprocessing.Process(target=paint_win_process.run, args=(self.lang["untitled"], (prompt.width,
+                    prompt.height), prompt.background, self.paintQ, self.mainQ, "true")).start()
 
             prompt.destroy()
 
@@ -537,7 +537,7 @@ class SavePrompt(QDialog):
         self.file_path.textChanged.connect(self.file_path_changed)
         search_file_path_button = QPushButton()
         search_file_path_button.setText(lang["save as"])
-        search_file_path_button.clicked.connect(self.search_file_path)
+        search_file_path_button.clicked.connect(self.get_path_from_file_dialog)
         file_path_layout.addWidget(self.file_path)
         file_path_layout.addWidget(search_file_path_button)
         main_layout.addLayout(file_path_layout)
@@ -646,16 +646,16 @@ class SavePrompt(QDialog):
             self.png_compression_setting.hide()
             self.jpg_quality_setting.show()
 
-    def search_file_path(self):
-        if self.file_path.text().find("\\") > 0:  # if  '/' in prev-path
+    def get_path_from_file_dialog(self):
+        if self.file_path.text().find("/") > 0:  # if  '/' in prev-path
             prev_path = self.file_path.text()[:len(self.file_path.text())-self.file_path.text()[::-1].find("/")]
         else:  # if '\' in prev-path
             prev_path = self.file_path.text()[:len(self.file_path.text()) - self.file_path.text()[::-1].find("\\")]
 
         if os.path.exists(prev_path):
-            path, filetype = list(QFileDialog.getSaveFileName(self, self.lang["save image"], prev_path,"*.png;; *.jpg"))
+            path = list(QFileDialog.getSaveFileName(self, self.lang["save image"], prev_path,"*.png *.jpg"))[0]
         else:
-            path, filetype = list(QFileDialog.getSaveFileName(self, self.lang["save image"], "C:\\", "*.png;; *.jpg"))
+            path = list(QFileDialog.getSaveFileName(self, self.lang["save image"], "C:\\", "*.png *.jpg"))[0]
 
         try:
             path.decode("ascii")  # check if ASCII
@@ -665,22 +665,21 @@ class SavePrompt(QDialog):
             error_message.show()
 
         if path:
-            # file extension
-            if path[-4:] != ".png" and path[-4:] != ".jpg" \
-            and path[-4:] != ".PNG" and path[-4:] != ".JPG":
-                self.filetype = filetype[2:]  # (without ".")
-                path = path + "." + self.filetype
-            else:
-                self.filetype = path[2:]  # (without ".")
-
-            self.file_path.setText(path)
-
-            if self.filetype == "JPG" or self.filetype == "jpg":
+            if path[-4:] == ".png" or path[-4:] == ".PNG":
+                self.filetype = "png"
+                self.jpg_quality_setting.hide()
+                self.png_compression_setting.show()
+            elif path[-4:] == ".jpg" or path[-4:] == ".JPG":
+                self.filetype = "jpg"
                 self.png_compression_setting.hide()
                 self.jpg_quality_setting.show()
             else:
+                path += ".png"
+                self.filetype = "png"
                 self.jpg_quality_setting.hide()
                 self.png_compression_setting.show()
+
+            self.file_path.setText(path)
 
     def save_clicked(self):
         path = self.file_path.text()
@@ -724,9 +723,9 @@ class NewPrompt(QDialog):
                                         Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
 
         self.lang = lang
-        self.config_width = "64"
-        self.config_height = "64"
-        self.config_background = (255, 255, 255, 0)
+        self.width = "64"
+        self.height = "64"
+        self.background = (255, 255, 255, 0)
 
         self.setModal(True)
         self.setWindowTitle(self.lang["new"])
@@ -791,38 +790,38 @@ class NewPrompt(QDialog):
 
     def update_width(self, txt):
         if len(txt) >= 1:
-            self.config_width = txt
+            self.width = txt
         else:
-            self.config_width = ""
+            self.width = ""
 
     def update_height(self, txt):
         if len(txt) >= 1:
-            self.config_height = txt
+            self.height = txt
         else:
-            self.config_height = ""
+            self.height = ""
 
     def open_clicked(self):
         if self.setBackground.currentText() == self.lang["transparency"]:
-            self.config_background = (255, 255, 255, 0)
+            self.background = (255, 255, 255, 0)
         elif self.setBackground.currentText() == self.lang["color1"]:
-            self.config_background = self.parent().colors[0].rgb + (255,)
+            self.background = self.parent().colors[0].rgb + (255,)
 
-        if self.config_width == "-" or self.config_width == "+": self.config_width = "1"
-        if self.config_height == "-" or self.config_height == "+": self.config_height = "1"
+        if self.width == "-" or self.width == "+": self.width = "1"
+        if self.height == "-" or self.height == "+": self.height = "1"
 
-        if len(self.config_width) >= 1:
-            self.config_width = int(self.config_width)
-            if self.config_width < 1:
-                self.config_width = 1
+        if len(self.width) >= 1:
+            self.width = int(self.width)
+            if self.width < 1:
+                self.width = 1
         else:
-            self.config_width = 64
+            self.width = 64
 
-        if len(self.config_height) >= 1:
-            self.config_height = int(self.config_height)
-            if self.config_height < 1:
-                self.config_height = 1
+        if len(self.height) >= 1:
+            self.height = int(self.height)
+            if self.height < 1:
+                self.height = 1
         else:
-            self.config_height = 64
+            self.height = 64
 
         return self.done(1)
 
