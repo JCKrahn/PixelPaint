@@ -16,7 +16,6 @@ import pathlib2
 
 
 def run():
-    global PixelPaint
     PixelPaint = QApplication(sys.argv)
     main_win = MainWindow()
     main_win.show()
