@@ -326,7 +326,7 @@ class MainWindow(QMainWindow):
 
     def open(self):
         if not self.paint_win_open:
-            returned_path = list(QFileDialog.getOpenFileName(self, self.lang["open image"], "C:\\", "*.png *.jpg"))[0]
+            returned_path = list(QFileDialog.getOpenFileName(self, self.lang["open image"], "C:\\", "*.png *.PNG *.jpg *.JPG *.jpeg *.JPEG"))[0]
             try:
                 returned_path.decode("ascii")  # check if ASCII
 
@@ -334,11 +334,15 @@ class MainWindow(QMainWindow):
 
                 if os.path.exists(returned_path):
 
-                    self.paint_win_open = True
-
-                    img = cv2.imread(self.image_info[0], cv2.IMREAD_UNCHANGED)
-                    multiprocessing.Process(target=paint_win_process.run, args=(self.image_info[0], (img.shape[1],
-                        img.shape[0]), "Transparency", self.paintQ, self.mainQ, self.ini["image_maxsize"])).start()
+                    try:
+                        img = cv2.imread(self.image_info[0], cv2.IMREAD_UNCHANGED)
+                        size = (img.shape[1], img.shape[0])
+                        self.paint_win_open = True
+                        multiprocessing.Process(target=paint_win_process.run, args=(self.image_info[0], size,
+                            "Transparency", self.paintQ, self.mainQ, self.ini["image_maxsize"])).start()
+                    except:
+                        error_message = ErrorMessage(self, "ERROR", self.lang["image load error text"])
+                        error_message.show()
 
             except UnicodeEncodeError:  # not ASCII
                 error_message = ErrorMessage(self, "ERROR", self.lang["non ascii error"])
@@ -647,7 +651,8 @@ class SavePrompt(QDialog):
             self.jpg_quality_setting.hide()
             self.png_compression_setting.show()
 
-        elif self.file_path.text()[-4:] == ".jpg" or self.file_path.text()[-4:] == ".JPG":
+        elif self.file_path.text()[-4:] == ".jpg" or self.file_path.text()[-4:] == ".JPG" \
+        or self.file_path.text()[-5:] == ".jpeg" or self.file_path.text()[-5:] == ".JPEG":
             self.filetype = "jpg"
             self.png_compression_setting.hide()
             self.jpg_quality_setting.show()
@@ -659,9 +664,11 @@ class SavePrompt(QDialog):
             prev_path = self.file_path.text()[:len(self.file_path.text()) - self.file_path.text()[::-1].find("\\")]
 
         if os.path.exists(prev_path):
-            path = list(QFileDialog.getSaveFileName(self, self.lang["save image"], prev_path,"*.png *.jpg"))[0]
+            path = list(QFileDialog.getSaveFileName(self, self.lang["save image"], prev_path,
+                                                    "*.png *.PNG *.jpg *.JPG *.jpeg *.JPEG"))[0]
         else:
-            path = list(QFileDialog.getSaveFileName(self, self.lang["save image"], "C:\\", "*.png *.jpg"))[0]
+            path = list(QFileDialog.getSaveFileName(self, self.lang["save image"], "C:\\",
+                                                    "*.png *.PNG *.jpg *.JPG *.jpeg *.JPEG"))[0]
 
         try:
             path.decode("ascii")  # check if ASCII
@@ -675,7 +682,7 @@ class SavePrompt(QDialog):
                 self.filetype = "png"
                 self.jpg_quality_setting.hide()
                 self.png_compression_setting.show()
-            elif path[-4:] == ".jpg" or path[-4:] == ".JPG":
+            elif path[-4:] == ".jpg" or path[-4:] == ".JPG" or path[-5:] == ".jpeg" or path[-5:] == ".JPEG":
                 self.filetype = "jpg"
                 self.png_compression_setting.hide()
                 self.jpg_quality_setting.show()
@@ -695,7 +702,8 @@ class SavePrompt(QDialog):
             # check if valid path
             if os.path.exists(path[:len(path)-path[::-1].find("/")]):
                 # check if valid file extension
-                if path[-4:] == ".png" or path[-4:] == ".jpg" or path[-4:] == ".PNG" or path[0][-4:] == ".JPG":
+                if path[-4:] == ".jpg" or path[-4:] == ".JPG" or path[-5:] == ".jpeg" or path[-5:] == ".JPEG" \
+                or path[-4:] == ".png" or path[-4:] == ".PNG":
 
                     if self.png_compression_setting.isVisible():
                         self.image_info = [path, self.filetype, self.png_compression_slider.value(),

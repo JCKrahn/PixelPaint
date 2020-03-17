@@ -97,8 +97,16 @@ def run(title, size, background, paint_input_q, gui_input_q, image_maxsize):
 
                 if title[-4:] == ".png":
                     title = title[len(title) - title[::-1].find("/"):title.find(".png")]
+                elif title[-4:] == ".PNG":
+                    title = title[len(title) - title[::-1].find("/"):title.find(".PNG")]
                 elif title[-4:] == ".jpg":
                     title = title[len(title) - title[::-1].find("/"):title.find(".jpg")]
+                elif title[-4:] == ".JPG":
+                    title = title[len(title) - title[::-1].find("/"):title.find(".JPG")]
+                elif title[-5:] == ".jpeg":
+                    title = title[len(title) - title[::-1].find("/"):title.find(".jpeg")]
+                elif title[-5:] == ".JPEG":
+                    title = title[len(title) - title[::-1].find("/"):title.find(".JPEG")]
                 pygame.display.set_caption(title)
 
             else:
@@ -229,6 +237,10 @@ def run(title, size, background, paint_input_q, gui_input_q, image_maxsize):
                                 image_name = path[len(path) - path[::-1].find("/"):path.find(".jpg")]
                             elif path[-4:] == ".JPG":
                                 image_name = path[len(path) - path[::-1].find("/"):path.find(".JPG")]
+                            elif path[-5:] == ".jpeg":
+                                image_name = path[len(path) - path[::-1].find("/"):path.find(".jpeg")]
+                            elif path[-5:] == ".JPEG":
+                                image_name = path[len(path) - path[::-1].find("/"):path.find(".JPEG")]
 
                         elif grayscale:
                             img = numpy.zeros((image.real_h_in_pixels * multiplier, image.real_w_in_pixels * multiplier,
@@ -264,6 +276,10 @@ def run(title, size, background, paint_input_q, gui_input_q, image_maxsize):
                                     image_name = path[len(path) - path[::-1].find("/"):path.find(".jpg")]
                                 elif path[-4:] == ".JPG":
                                     image_name = path[len(path) - path[::-1].find("/"):path.find(".JPG")]
+                                if path[-5:] == ".jpeg":
+                                    image_name = path[len(path) - path[::-1].find("/"):path.find(".jpeg")]
+                                elif path[-5:] == ".JPEG":
+                                    image_name = path[len(path) - path[::-1].find("/"):path.find(".JPEG")]
 
                         pygame.display.set_icon(pygame.image.load(path))
                         pygame.display.set_caption(image_name)
