@@ -1,5 +1,7 @@
 <img src='img/logo.png' width='600'>
 
+This is my first "real" project :)
+
 [Download releases](https://github.com/juliuskrahn/PixelPaint/releases)
 
 [PixelPaint website](https://pixelpaint.eu.pythonanywhere.com)
