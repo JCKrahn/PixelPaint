@@ -4,8 +4,6 @@ This is my first "real" project :)
 
 [Download releases](https://github.com/juliuskrahn/PixelPaint/releases)
 
-[PixelPaint website](https://pixelpaint.eu.pythonanywhere.com)
-
 
 ## Preview:
 <img src='img/prev_img.PNG' width='600'>
